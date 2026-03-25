@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, ArrowRight, Check, AlertTriangle } from "lucide-react";
 import PatientSearchSelect from "@/components/PatientSearchSelect";
-import ProtocolSelector from "@/components/ProtocolSelector";
+import DrugSelector from "@/components/DrugSelector";
 import { CHEMO_PROTOCOLS, calculateDose, validateDose, generateAlerts } from "@/lib/chemoProtocols";
 
 export default function NewPrescription() {
@@ -15,17 +15,41 @@ export default function NewPrescription() {
   const [step, setStep] = useState(1);
   const [patient, setPatient] = useState(null);
   const [protocol, setProtocol] = useState(null);
-  const [doctorName, setDoctorName] = useState("");
-  const [doctorLicense, setDoctorLicense] = useState("");
-  const [cycleNumber, setCycleNumber] = useState(1);
-  const [dayOfCycle, setDayOfCycle] = useState(1);
-  const [prescriptionDate, setPrescriptionDate] = useState(new Date().toISOString().split("T")[0]);
-  const [drugDoses, setDrugDoses] = useState([]);
+  const [selectedDrugs, setSelectedDrugs] = useState([]);
+  const [detectedProtocol, setDetectedProtocol] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [saving, setSaving] = useState(false);
 
-  const protocolData = protocol ? CHEMO_PROTOCOLS[protocol] : null;
+  const protocolData = detectedProtocol || (protocol ? { name: protocol } : null);
 
+  const handleDrugsChange = (drugs) => {
+    setSelectedDrugs(drugs);
+    if (patient) {
+      const doses = drugs.map(drug => {
+        const calc = calculateDose(drug, patient.bsa, patient.weight_kg, patient.creatinine_clearance);
+        return {
+          ...drug,
+          calculated_dose: calc,
+          prescribed_dose: calc,
+          dose_unit: drug.dose_basis === "AUC" ? "mg" : drug.dose_basis.replace("/m²", "").replace("/kg", ""),
+          is_valid: true,
+          variance_percent: 0,
+          validation_notes: ""
+        };
+      });
+      setDrugDoses(doses);
+      const al = generateAlerts(drugs, patient);
+      setAlerts(al);
+    }
+  };
+
+  const handleProtocolDetected = (detected) => {
+    setDetectedProtocol(detected);
+    if (detected) setProtocol(detected.key);
+    else setProtocol(null);
+  };
+
+  // Keep for backward compat but not used in new flow
   const handleProtocolSelect = (key) => {
     setProtocol(key);
     if (key && patient) {
@@ -69,7 +93,7 @@ export default function NewPrescription() {
       patient_name: patient.full_name,
       prescribing_doctor: doctorName,
       doctor_license: doctorLicense,
-      protocol_name: protocolData.name,
+      protocol_name: detectedProtocol ? detectedProtocol.name : (selectedDrugs.length > 0 ? "Protocolo personalizado" : ""),
       cycle_number: cycleNumber,
       day_of_cycle: dayOfCycle,
       prescription_date: prescriptionDate,
@@ -167,19 +191,50 @@ export default function NewPrescription() {
         </div>
       )}
 
-      {/* Step 2: Protocol selection */}
+      {/* Step 2: Drug selection + protocol detection */}
       {step === 2 && (
         <div className="space-y-6">
           <div className="bg-card rounded-xl border border-border p-6 space-y-4">
-            <h2 className="font-semibold">Seleccionar Protocolo de Quimioterapia</h2>
-            <ProtocolSelector onSelect={handleProtocolSelect} selected={protocol} />
+            <div>
+              <h2 className="font-semibold">Medicamentos Prescritos</h2>
+              <p className="text-sm text-muted-foreground mt-1">Agregue los medicamentos y el sistema detectará el protocolo automáticamente</p>
+            </div>
+            <DrugSelector
+              selectedDrugs={selectedDrugs}
+              onDrugsChange={handleDrugsChange}
+              onProtocolDetected={handleProtocolDetected}
+            />
           </div>
+
+          {/* Protocol detection result */}
+          {selectedDrugs.length > 0 && (
+            <div className={`rounded-xl border p-4 ${
+              detectedProtocol
+                ? "bg-emerald-50 border-emerald-200"
+                : "bg-amber-50 border-amber-200"
+            }`}>
+              {detectedProtocol ? (
+                <div>
+                  <p className="text-sm font-semibold text-emerald-700">
+                    ✅ Protocolo detectado: {detectedProtocol.name}
+                  </p>
+                  <p className="text-xs text-emerald-600 mt-1">
+                    {detectedProtocol.indication} · Ciclo cada {detectedProtocol.cycle_days} días · {detectedProtocol.total_cycles} ciclos · Coincidencia {Math.round(detectedProtocol.score * 100)}%
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-amber-700">
+                  ⚠️ No se identificó un protocolo estándar. Se guardará como prescripción personalizada.
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setStep(1)} className="gap-2">
               <ArrowLeft className="h-4 w-4" /> Anterior
             </Button>
-            <Button onClick={() => setStep(3)} disabled={!protocol} className="gap-2">
+            <Button onClick={() => setStep(3)} disabled={selectedDrugs.length === 0} className="gap-2">
               Siguiente <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
@@ -207,7 +262,7 @@ export default function NewPrescription() {
             <div><span className="text-muted-foreground">Paciente:</span> <span className="font-medium">{patient?.full_name}</span></div>
             <div><span className="text-muted-foreground">SCT:</span> <span className="font-mono font-medium">{patient?.bsa?.toFixed(2)} m²</span></div>
             <div><span className="text-muted-foreground">Peso:</span> <span className="font-mono font-medium">{patient?.weight_kg} kg</span></div>
-            <div><span className="text-muted-foreground">Protocolo:</span> <span className="font-medium">{protocolData?.name}</span></div>
+            <div><span className="text-muted-foreground">Protocolo:</span> <span className="font-medium">{detectedProtocol ? detectedProtocol.name : "Personalizado"}</span></div>
           </div>
 
           {/* Drug doses */}
