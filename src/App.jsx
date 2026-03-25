@@ -5,7 +5,12 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-// Add page imports here
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import NewPrescription from './pages/NewPrescription';
+import PrescriptionDetail from './pages/PrescriptionDetail';
+import Prescriptions from './pages/Prescriptions';
+import Protocols from './pages/Protocols';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -33,8 +38,14 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
-      <Route path="*" element={<PageNotFound />} />
+      <Route element={<Layout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/nueva-prescripcion" element={<NewPrescription />} />
+        <Route path="/prescripcion/:id" element={<PrescriptionDetail />} />
+        <Route path="/prescripciones" element={<Prescriptions />} />
+        <Route path="/protocolos" element={<Protocols />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Route>
     </Routes>
   );
 };
