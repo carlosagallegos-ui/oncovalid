@@ -45,7 +45,7 @@ export default function Prescriptions() {
     (rx.drugs || []).forEach((d, i) => {
       containers[i] = d.container_material || "Bolsa PVC";
       notes[i] = d.drug_validation_notes || d.validation_notes || "";
-      status[i] = d.drug_validation_status || "Pendiente";
+      status[i] = d.drug_validation_status?.toString() || "Pendiente";
     });
     setDrugContainers(containers);
     setDrugNotes(notes);
@@ -277,7 +277,7 @@ export default function Prescriptions() {
                       </div>
 
                       {/* Botones de validación por mezcla */}
-                      {drugStatus[i] === "Pendiente" ? (
+                      {drugStatus[i]?.toString() === "Pendiente" || !drugStatus[i] ? (
                         <div className="flex gap-2 flex-wrap">
                           <Button
                             size="sm"
@@ -319,7 +319,7 @@ export default function Prescriptions() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => setDrugStatus(prev => ({ ...prev, [i]: "Pendiente" }))}
+                            onClick={() => setDrugStatus(prev => ({ ...prev, [i]: "Pendiente" }))}  
                             className="h-6 text-xs"
                           >
                             Cambiar
