@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FilePlus, ClipboardList, BookOpen, FlaskConical, LogOut, TestTube, Package, Users, Tag, Beaker, ArrowUpFromLine, BarChart3, Eye } from "lucide-react";
+import { LayoutDashboard, FilePlus, ClipboardList, BookOpen, FlaskConical, LogOut, TestTube, Package, Users, Tag, Beaker, ArrowUpFromLine, BarChart3, Eye, User } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useState, useEffect } from "react";
 
@@ -30,6 +30,7 @@ const ALL_NAV_ITEMS = [
   // Compartidos
   { path: "/pacientes", label: "Pacientes", icon: Users, roles: ["admin", "jefe_centro", "validador", "medico", "coordinador", "encargado_preparacion", "encargado_calidad"] },
   { path: "/protocolos", label: "Protocolos", icon: BookOpen, roles: ["admin", "jefe_centro", "validador", "medico", "coordinador", "encargado_preparacion", "encargado_calidad"] },
+  { path: "/usuarios", label: "Usuarios", icon: User, roles: ["admin", "jefe_centro"] },
 ];
 
 export default function Layout() {

@@ -21,6 +21,7 @@ import MisPrescripciones from './pages/MisPrescripciones';
 import ValidacionMezclas from './pages/ValidacionMezclas';
 import Informes from './pages/Informes';
 import EstadoPrescripciones from './pages/EstadoPrescripciones';
+import Usuarios from './pages/Usuarios';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -64,6 +65,7 @@ const AuthenticatedApp = () => {
         <Route path="/validacion-mezclas" element={<ValidacionMezclas />} />
         <Route path="/informes" element={<Informes />} />
         <Route path="/estado-prescripciones" element={<EstadoPrescripciones />} />
+        <Route path="/usuarios" element={<Usuarios />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
