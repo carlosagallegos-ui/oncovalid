@@ -73,13 +73,22 @@ export default function Prescriptions() {
       };
     });
 
-    const updatedRx = { ...selectedRx, drugs: updatedDrugs };
-    
     await base44.entities.Prescription.update(selectedRx.id, { drugs: updatedDrugs });
     
-    setSelectedRx(updatedRx);
-    setPrescriptions(prev => prev.map(p => p.id === selectedRx.id ? updatedRx : p));
-    setDrugStatus(prev => ({ ...prev, [drugIndex]: newDrugStatus }));
+    // Recargar desde la BD para asegurar sincronización
+    const freshRx = await base44.entities.Prescription.filter({ id: selectedRx.id });
+    if (freshRx.length > 0) {
+      const reloaded = freshRx[0];
+      setSelectedRx(reloaded);
+      setPrescriptions(prev => prev.map(p => p.id === selectedRx.id ? reloaded : p));
+      
+      // Actualizar estado local con valores de la BD
+      const status = {};
+      (reloaded.drugs || []).forEach((d, i) => {
+        status[i] = d.drug_validation_status || "Pendiente";
+      });
+      setDrugStatus(status);
+    }
     setUpdating(false);
   };
 
