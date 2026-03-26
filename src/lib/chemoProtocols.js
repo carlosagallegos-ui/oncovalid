@@ -9,8 +9,8 @@ export const CHEMO_PROTOCOLS = {
     cycle_days: 21,
     total_cycles: 4,
     drugs: [
-      { drug_name: "Doxorrubicina", dose_per_unit: 60, dose_basis: "mg/m²", route: "IV", infusion_time: "15-30 min", diluent: "SSN 0.9%", volume_ml: 100, max_lifetime_dose: 450 },
-      { drug_name: "Ciclofosfamida", dose_per_unit: 600, dose_basis: "mg/m²", route: "IV", infusion_time: "30-60 min", diluent: "SSN 0.9%", volume_ml: 250 }
+      { drug_name: "Doxorrubicina", dose_per_unit: 60, dose_basis: "mg/m²", route: "IV", infusion_time: "15-30 min", diluent: "SSN 0.9%", volume_ml: 100, max_lifetime_dose: 450, vial_size: 50, vial_unit: "mg" },
+      { drug_name: "Ciclofosfamida", dose_per_unit: 600, dose_basis: "mg/m²", route: "IV", infusion_time: "30-60 min", diluent: "SSN 0.9%", volume_ml: 250, vial_size: 1000, vial_unit: "mg" }
     ]
   },
   "AC-T": {
@@ -19,9 +19,9 @@ export const CHEMO_PROTOCOLS = {
     cycle_days: 21,
     total_cycles: 8,
     drugs: [
-      { drug_name: "Doxorrubicina", dose_per_unit: 60, dose_basis: "mg/m²", route: "IV", infusion_time: "15-30 min", diluent: "SSN 0.9%", volume_ml: 100, max_lifetime_dose: 450 },
-      { drug_name: "Ciclofosfamida", dose_per_unit: 600, dose_basis: "mg/m²", route: "IV", infusion_time: "30-60 min", diluent: "SSN 0.9%", volume_ml: 250 },
-      { drug_name: "Paclitaxel", dose_per_unit: 175, dose_basis: "mg/m²", route: "IV", infusion_time: "3 hrs", diluent: "SSN 0.9%", volume_ml: 500 }
+      { drug_name: "Doxorrubicina", dose_per_unit: 60, dose_basis: "mg/m²", route: "IV", infusion_time: "15-30 min", diluent: "SSN 0.9%", volume_ml: 100, max_lifetime_dose: 450, vial_size: 50, vial_unit: "mg" },
+      { drug_name: "Ciclofosfamida", dose_per_unit: 600, dose_basis: "mg/m²", route: "IV", infusion_time: "30-60 min", diluent: "SSN 0.9%", volume_ml: 250, vial_size: 1000, vial_unit: "mg" },
+      { drug_name: "Paclitaxel", dose_per_unit: 175, dose_basis: "mg/m²", route: "IV", infusion_time: "3 hrs", diluent: "SSN 0.9%", volume_ml: 500, vial_size: 300, vial_unit: "mg" }
     ]
   },
   "TC": {
@@ -30,8 +30,8 @@ export const CHEMO_PROTOCOLS = {
     cycle_days: 21,
     total_cycles: 4,
     drugs: [
-      { drug_name: "Docetaxel", dose_per_unit: 75, dose_basis: "mg/m²", route: "IV", infusion_time: "1 hr", diluent: "SSN 0.9%", volume_ml: 250 },
-      { drug_name: "Ciclofosfamida", dose_per_unit: 600, dose_basis: "mg/m²", route: "IV", infusion_time: "30-60 min", diluent: "SSN 0.9%", volume_ml: 250 }
+      { drug_name: "Docetaxel", dose_per_unit: 75, dose_basis: "mg/m²", route: "IV", infusion_time: "1 hr", diluent: "SSN 0.9%", volume_ml: 250, vial_size: 80, vial_unit: "mg" },
+      { drug_name: "Ciclofosfamida", dose_per_unit: 600, dose_basis: "mg/m²", route: "IV", infusion_time: "30-60 min", diluent: "SSN 0.9%", volume_ml: 250, vial_size: 1000, vial_unit: "mg" }
     ]
   },
   "TCH": {
@@ -40,9 +40,9 @@ export const CHEMO_PROTOCOLS = {
     cycle_days: 21,
     total_cycles: 6,
     drugs: [
-      { drug_name: "Docetaxel", dose_per_unit: 75, dose_basis: "mg/m²", route: "IV", infusion_time: "1 hr", diluent: "SSN 0.9%", volume_ml: 250 },
-      { drug_name: "Carboplatino", dose_per_unit: 6, dose_basis: "AUC", route: "IV", infusion_time: "30-60 min", diluent: "SG 5%", volume_ml: 250 },
-      { drug_name: "Trastuzumab", dose_per_unit: 8, dose_basis: "mg/kg", route: "IV", infusion_time: "90 min", diluent: "SSN 0.9%", volume_ml: 250, note: "Dosis de carga 8 mg/kg, mantenimiento 6 mg/kg" }
+      { drug_name: "Docetaxel", dose_per_unit: 75, dose_basis: "mg/m²", route: "IV", infusion_time: "1 hr", diluent: "SSN 0.9%", volume_ml: 250, vial_size: 80, vial_unit: "mg" },
+      { drug_name: "Carboplatino", dose_per_unit: 6, dose_basis: "AUC", route: "IV", infusion_time: "30-60 min", diluent: "SG 5%", volume_ml: 250, vial_size: 450, vial_unit: "mg" },
+      { drug_name: "Trastuzumab", dose_per_unit: 8, dose_basis: "mg/kg", route: "IV", infusion_time: "90 min", diluent: "SSN 0.9%", volume_ml: 250, note: "Dosis de carga 8 mg/kg, mantenimiento 6 mg/kg", vial_size: 440, vial_unit: "mg" }
     ]
   },
 
@@ -53,10 +53,10 @@ export const CHEMO_PROTOCOLS = {
     cycle_days: 14,
     total_cycles: 12,
     drugs: [
-      { drug_name: "Oxaliplatino", dose_per_unit: 85, dose_basis: "mg/m²", route: "IV", infusion_time: "2 hrs", diluent: "SG 5%", volume_ml: 500 },
-      { drug_name: "Leucovorina", dose_per_unit: 400, dose_basis: "mg/m²", route: "IV", infusion_time: "2 hrs", diluent: "SG 5%", volume_ml: 250 },
-      { drug_name: "5-Fluorouracilo bolo", dose_per_unit: 400, dose_basis: "mg/m²", route: "IV", infusion_time: "Bolo", diluent: "Directo", volume_ml: 0 },
-      { drug_name: "5-Fluorouracilo infusión", dose_per_unit: 2400, dose_basis: "mg/m²", route: "IV", infusion_time: "46 hrs", diluent: "SSN 0.9%", volume_ml: 500 }
+      { drug_name: "Oxaliplatino", dose_per_unit: 85, dose_basis: "mg/m²", route: "IV", infusion_time: "2 hrs", diluent: "SG 5%", volume_ml: 500, vial_size: 100, vial_unit: "mg" },
+      { drug_name: "Leucovorina", dose_per_unit: 400, dose_basis: "mg/m²", route: "IV", infusion_time: "2 hrs", diluent: "SG 5%", volume_ml: 250, vial_size: 200, vial_unit: "mg" },
+      { drug_name: "5-Fluorouracilo bolo", dose_per_unit: 400, dose_basis: "mg/m²", route: "IV", infusion_time: "Bolo", diluent: "Directo", volume_ml: 0, vial_size: 500, vial_unit: "mg" },
+      { drug_name: "5-Fluorouracilo infusión", dose_per_unit: 2400, dose_basis: "mg/m²", route: "IV", infusion_time: "46 hrs", diluent: "SSN 0.9%", volume_ml: 500, vial_size: 500, vial_unit: "mg" }
     ]
   },
   "FOLFIRI": {
@@ -65,10 +65,10 @@ export const CHEMO_PROTOCOLS = {
     cycle_days: 14,
     total_cycles: 12,
     drugs: [
-      { drug_name: "Irinotecán", dose_per_unit: 180, dose_basis: "mg/m²", route: "IV", infusion_time: "90 min", diluent: "SSN 0.9%", volume_ml: 500 },
-      { drug_name: "Leucovorina", dose_per_unit: 400, dose_basis: "mg/m²", route: "IV", infusion_time: "2 hrs", diluent: "SG 5%", volume_ml: 250 },
-      { drug_name: "5-Fluorouracilo bolo", dose_per_unit: 400, dose_basis: "mg/m²", route: "IV", infusion_time: "Bolo", diluent: "Directo", volume_ml: 0 },
-      { drug_name: "5-Fluorouracilo infusión", dose_per_unit: 2400, dose_basis: "mg/m²", route: "IV", infusion_time: "46 hrs", diluent: "SSN 0.9%", volume_ml: 500 }
+      { drug_name: "Irinotecán", dose_per_unit: 180, dose_basis: "mg/m²", route: "IV", infusion_time: "90 min", diluent: "SSN 0.9%", volume_ml: 500, vial_size: 100, vial_unit: "mg" },
+      { drug_name: "Leucovorina", dose_per_unit: 400, dose_basis: "mg/m²", route: "IV", infusion_time: "2 hrs", diluent: "SG 5%", volume_ml: 250, vial_size: 200, vial_unit: "mg" },
+      { drug_name: "5-Fluorouracilo bolo", dose_per_unit: 400, dose_basis: "mg/m²", route: "IV", infusion_time: "Bolo", diluent: "Directo", volume_ml: 0, vial_size: 500, vial_unit: "mg" },
+      { drug_name: "5-Fluorouracilo infusión", dose_per_unit: 2400, dose_basis: "mg/m²", route: "IV", infusion_time: "46 hrs", diluent: "SSN 0.9%", volume_ml: 500, vial_size: 500, vial_unit: "mg" }
     ]
   },
   "XELOX": {
@@ -77,8 +77,8 @@ export const CHEMO_PROTOCOLS = {
     cycle_days: 21,
     total_cycles: 8,
     drugs: [
-      { drug_name: "Oxaliplatino", dose_per_unit: 130, dose_basis: "mg/m²", route: "IV", infusion_time: "2 hrs", diluent: "SG 5%", volume_ml: 500 },
-      { drug_name: "Capecitabina", dose_per_unit: 1000, dose_basis: "mg/m²", route: "VO", infusion_time: "c/12h D1-14", diluent: "N/A", volume_ml: 0 }
+      { drug_name: "Oxaliplatino", dose_per_unit: 130, dose_basis: "mg/m²", route: "IV", infusion_time: "2 hrs", diluent: "SG 5%", volume_ml: 500, vial_size: 100, vial_unit: "mg" },
+      { drug_name: "Capecitabina", dose_per_unit: 1000, dose_basis: "mg/m²", route: "VO", infusion_time: "c/12h D1-14", diluent: "N/A", volume_ml: 0, vial_size: 500, vial_unit: "mg" }
     ]
   },
 
@@ -89,11 +89,11 @@ export const CHEMO_PROTOCOLS = {
     cycle_days: 21,
     total_cycles: 6,
     drugs: [
-      { drug_name: "Rituximab", dose_per_unit: 375, dose_basis: "mg/m²", route: "IV", infusion_time: "4-6 hrs", diluent: "SSN 0.9%", volume_ml: 500 },
-      { drug_name: "Ciclofosfamida", dose_per_unit: 750, dose_basis: "mg/m²", route: "IV", infusion_time: "30-60 min", diluent: "SSN 0.9%", volume_ml: 250 },
-      { drug_name: "Doxorrubicina", dose_per_unit: 50, dose_basis: "mg/m²", route: "IV", infusion_time: "15-30 min", diluent: "SSN 0.9%", volume_ml: 100, max_lifetime_dose: 450 },
-      { drug_name: "Vincristina", dose_per_unit: 1.4, dose_basis: "mg/m²", route: "IV", infusion_time: "Bolo", diluent: "SSN 0.9%", volume_ml: 50, max_single_dose: 2 },
-      { drug_name: "Prednisona", dose_per_unit: 100, dose_basis: "mg", route: "VO", infusion_time: "D1-5", diluent: "N/A", volume_ml: 0 }
+      { drug_name: "Rituximab", dose_per_unit: 375, dose_basis: "mg/m²", route: "IV", infusion_time: "4-6 hrs", diluent: "SSN 0.9%", volume_ml: 500, vial_size: 500, vial_unit: "mg" },
+      { drug_name: "Ciclofosfamida", dose_per_unit: 750, dose_basis: "mg/m²", route: "IV", infusion_time: "30-60 min", diluent: "SSN 0.9%", volume_ml: 250, vial_size: 1000, vial_unit: "mg" },
+      { drug_name: "Doxorrubicina", dose_per_unit: 50, dose_basis: "mg/m²", route: "IV", infusion_time: "15-30 min", diluent: "SSN 0.9%", volume_ml: 100, max_lifetime_dose: 450, vial_size: 50, vial_unit: "mg" },
+      { drug_name: "Vincristina", dose_per_unit: 1.4, dose_basis: "mg/m²", route: "IV", infusion_time: "Bolo", diluent: "SSN 0.9%", volume_ml: 50, max_single_dose: 2, vial_size: 1, vial_unit: "mg" },
+      { drug_name: "Prednisona", dose_per_unit: 100, dose_basis: "mg", route: "VO", infusion_time: "D1-5", diluent: "N/A", volume_ml: 0, vial_size: 50, vial_unit: "mg" }
     ]
   },
   "ABVD": {
@@ -102,10 +102,10 @@ export const CHEMO_PROTOCOLS = {
     cycle_days: 28,
     total_cycles: 6,
     drugs: [
-      { drug_name: "Doxorrubicina", dose_per_unit: 25, dose_basis: "mg/m²", route: "IV", infusion_time: "15-30 min", diluent: "SSN 0.9%", volume_ml: 100, max_lifetime_dose: 450 },
-      { drug_name: "Bleomicina", dose_per_unit: 10, dose_basis: "U/m²", route: "IV", infusion_time: "15 min", diluent: "SSN 0.9%", volume_ml: 100 },
-      { drug_name: "Vinblastina", dose_per_unit: 6, dose_basis: "mg/m²", route: "IV", infusion_time: "Bolo", diluent: "SSN 0.9%", volume_ml: 50 },
-      { drug_name: "Dacarbazina", dose_per_unit: 375, dose_basis: "mg/m²", route: "IV", infusion_time: "30-60 min", diluent: "SG 5%", volume_ml: 250 }
+      { drug_name: "Doxorrubicina", dose_per_unit: 25, dose_basis: "mg/m²", route: "IV", infusion_time: "15-30 min", diluent: "SSN 0.9%", volume_ml: 100, max_lifetime_dose: 450, vial_size: 50, vial_unit: "mg" },
+      { drug_name: "Bleomicina", dose_per_unit: 10, dose_basis: "U/m²", route: "IV", infusion_time: "15 min", diluent: "SSN 0.9%", volume_ml: 100, vial_size: 15, vial_unit: "U" },
+      { drug_name: "Vinblastina", dose_per_unit: 6, dose_basis: "mg/m²", route: "IV", infusion_time: "Bolo", diluent: "SSN 0.9%", volume_ml: 50, vial_size: 10, vial_unit: "mg" },
+      { drug_name: "Dacarbazina", dose_per_unit: 375, dose_basis: "mg/m²", route: "IV", infusion_time: "30-60 min", diluent: "SG 5%", volume_ml: 250, vial_size: 200, vial_unit: "mg" }
     ]
   },
 
@@ -116,8 +116,8 @@ export const CHEMO_PROTOCOLS = {
     cycle_days: 21,
     total_cycles: 4,
     drugs: [
-      { drug_name: "Paclitaxel", dose_per_unit: 200, dose_basis: "mg/m²", route: "IV", infusion_time: "3 hrs", diluent: "SSN 0.9%", volume_ml: 500 },
-      { drug_name: "Carboplatino", dose_per_unit: 6, dose_basis: "AUC", route: "IV", infusion_time: "30-60 min", diluent: "SG 5%", volume_ml: 250 }
+      { drug_name: "Paclitaxel", dose_per_unit: 200, dose_basis: "mg/m²", route: "IV", infusion_time: "3 hrs", diluent: "SSN 0.9%", volume_ml: 500, vial_size: 300, vial_unit: "mg" },
+      { drug_name: "Carboplatino", dose_per_unit: 6, dose_basis: "AUC", route: "IV", infusion_time: "30-60 min", diluent: "SG 5%", volume_ml: 250, vial_size: 450, vial_unit: "mg" }
     ]
   },
   "Cisplatino-Pemetrexed": {
@@ -126,8 +126,8 @@ export const CHEMO_PROTOCOLS = {
     cycle_days: 21,
     total_cycles: 4,
     drugs: [
-      { drug_name: "Pemetrexed", dose_per_unit: 500, dose_basis: "mg/m²", route: "IV", infusion_time: "10 min", diluent: "SSN 0.9%", volume_ml: 100 },
-      { drug_name: "Cisplatino", dose_per_unit: 75, dose_basis: "mg/m²", route: "IV", infusion_time: "1-2 hrs", diluent: "SSN 0.9%", volume_ml: 500, note: "Requiere hidratación pre y post" }
+      { drug_name: "Pemetrexed", dose_per_unit: 500, dose_basis: "mg/m²", route: "IV", infusion_time: "10 min", diluent: "SSN 0.9%", volume_ml: 100, vial_size: 500, vial_unit: "mg" },
+      { drug_name: "Cisplatino", dose_per_unit: 75, dose_basis: "mg/m²", route: "IV", infusion_time: "1-2 hrs", diluent: "SSN 0.9%", volume_ml: 500, note: "Requiere hidratación pre y post", vial_size: 50, vial_unit: "mg" }
     ]
   },
 
@@ -138,10 +138,10 @@ export const CHEMO_PROTOCOLS = {
     cycle_days: 14,
     total_cycles: 8,
     drugs: [
-      { drug_name: "Docetaxel", dose_per_unit: 50, dose_basis: "mg/m²", route: "IV", infusion_time: "1 hr", diluent: "SSN 0.9%", volume_ml: 250 },
-      { drug_name: "Oxaliplatino", dose_per_unit: 85, dose_basis: "mg/m²", route: "IV", infusion_time: "2 hrs", diluent: "SG 5%", volume_ml: 500 },
-      { drug_name: "Leucovorina", dose_per_unit: 200, dose_basis: "mg/m²", route: "IV", infusion_time: "2 hrs", diluent: "SG 5%", volume_ml: 250 },
-      { drug_name: "5-Fluorouracilo infusión", dose_per_unit: 2600, dose_basis: "mg/m²", route: "IV", infusion_time: "24 hrs", diluent: "SSN 0.9%", volume_ml: 500 }
+      { drug_name: "Docetaxel", dose_per_unit: 50, dose_basis: "mg/m²", route: "IV", infusion_time: "1 hr", diluent: "SSN 0.9%", volume_ml: 250, vial_size: 80, vial_unit: "mg" },
+      { drug_name: "Oxaliplatino", dose_per_unit: 85, dose_basis: "mg/m²", route: "IV", infusion_time: "2 hrs", diluent: "SG 5%", volume_ml: 500, vial_size: 100, vial_unit: "mg" },
+      { drug_name: "Leucovorina", dose_per_unit: 200, dose_basis: "mg/m²", route: "IV", infusion_time: "2 hrs", diluent: "SG 5%", volume_ml: 250, vial_size: 200, vial_unit: "mg" },
+      { drug_name: "5-Fluorouracilo infusión", dose_per_unit: 2600, dose_basis: "mg/m²", route: "IV", infusion_time: "24 hrs", diluent: "SSN 0.9%", volume_ml: 500, vial_size: 500, vial_unit: "mg" }
     ]
   },
 
@@ -152,8 +152,8 @@ export const CHEMO_PROTOCOLS = {
     cycle_days: 21,
     total_cycles: 6,
     drugs: [
-      { drug_name: "Paclitaxel", dose_per_unit: 175, dose_basis: "mg/m²", route: "IV", infusion_time: "3 hrs", diluent: "SSN 0.9%", volume_ml: 500 },
-      { drug_name: "Carboplatino", dose_per_unit: 5, dose_basis: "AUC", route: "IV", infusion_time: "30-60 min", diluent: "SG 5%", volume_ml: 250 }
+      { drug_name: "Paclitaxel", dose_per_unit: 175, dose_basis: "mg/m²", route: "IV", infusion_time: "3 hrs", diluent: "SSN 0.9%", volume_ml: 500, vial_size: 300, vial_unit: "mg" },
+      { drug_name: "Carboplatino", dose_per_unit: 5, dose_basis: "AUC", route: "IV", infusion_time: "30-60 min", diluent: "SG 5%", volume_ml: 250, vial_size: 450, vial_unit: "mg" }
     ]
   },
 
@@ -164,21 +164,21 @@ export const CHEMO_PROTOCOLS = {
     cycle_days: 21,
     total_cycles: 6,
     drugs: [
-      { drug_name: "Cisplatino", dose_per_unit: 50, dose_basis: "mg/m²", route: "IV", infusion_time: "1-2 hrs", diluent: "SSN 0.9%", volume_ml: 500, note: "Requiere hidratación" },
-      { drug_name: "Paclitaxel", dose_per_unit: 175, dose_basis: "mg/m²", route: "IV", infusion_time: "3 hrs", diluent: "SSN 0.9%", volume_ml: 500 }
+      { drug_name: "Cisplatino", dose_per_unit: 50, dose_basis: "mg/m²", route: "IV", infusion_time: "1-2 hrs", diluent: "SSN 0.9%", volume_ml: 500, note: "Requiere hidratación", vial_size: 50, vial_unit: "mg" },
+      { drug_name: "Paclitaxel", dose_per_unit: 175, dose_basis: "mg/m²", route: "IV", infusion_time: "3 hrs", diluent: "SSN 0.9%", volume_ml: 500, vial_size: 300, vial_unit: "mg" }
     ]
   },
 
   // Cáncer testicular
   "BEP": {
-    name: "BEP (Bleomicina/Etopósido/Cisplatino)",
+    name: "BEP (Bleomicina/Etóposido/Cisplatino)",
     indication: "Cáncer testicular",
     cycle_days: 21,
     total_cycles: 3,
     drugs: [
-      { drug_name: "Cisplatino", dose_per_unit: 20, dose_basis: "mg/m²", route: "IV", infusion_time: "1-2 hrs", diluent: "SSN 0.9%", volume_ml: 500, note: "D1-5, requiere hidratación" },
-      { drug_name: "Etopósido", dose_per_unit: 100, dose_basis: "mg/m²", route: "IV", infusion_time: "1 hr", diluent: "SSN 0.9%", volume_ml: 500, note: "D1-5" },
-      { drug_name: "Bleomicina", dose_per_unit: 30, dose_basis: "U", route: "IV", infusion_time: "15 min", diluent: "SSN 0.9%", volume_ml: 100, note: "D1,8,15" }
+      { drug_name: "Cisplatino", dose_per_unit: 20, dose_basis: "mg/m²", route: "IV", infusion_time: "1-2 hrs", diluent: "SSN 0.9%", volume_ml: 500, note: "D1-5, requiere hidratación", vial_size: 50, vial_unit: "mg" },
+      { drug_name: "Etóposido", dose_per_unit: 100, dose_basis: "mg/m²", route: "IV", infusion_time: "1 hr", diluent: "SSN 0.9%", volume_ml: 500, note: "D1-5", vial_size: 100, vial_unit: "mg" },
+      { drug_name: "Bleomicina", dose_per_unit: 30, dose_basis: "U", route: "IV", infusion_time: "15 min", diluent: "SSN 0.9%", volume_ml: 100, note: "D1,8,15", vial_size: 15, vial_unit: "U" }
     ]
   }
 };

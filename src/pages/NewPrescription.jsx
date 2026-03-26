@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, ArrowRight, Check, AlertTriangle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, AlertTriangle, FlaskConical, Syringe } from "lucide-react";
 import PatientSearchSelect from "@/components/PatientSearchSelect";
 import DrugSelector from "@/components/DrugSelector";
 import { calculateDose, validateDose, generateAlerts } from "@/lib/chemoProtocols";
@@ -29,8 +29,8 @@ export default function NewPrescription() {
   const [drugDoses, setDrugDoses] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState("dosis");
 
-  // When drugs change, recalculate doses
   const handleDrugsChange = (drugs) => {
     setSelectedDrugs(drugs);
     if (patient && drugs.length > 0) {
@@ -56,9 +56,7 @@ export default function NewPrescription() {
     }
   };
 
-  const handleProtocolDetected = (detected) => {
-    setDetectedProtocol(detected);
-  };
+  const handleProtocolDetected = (detected) => setDetectedProtocol(detected);
 
   const handleDoseChange = (index, value) => {
     const updated = [...drugDoses];
@@ -80,7 +78,6 @@ export default function NewPrescription() {
     setDrugDoses(updated);
   };
 
-  // When moving to step 3, make sure doses are calculated
   const goToStep3 = () => {
     if (drugDoses.length === 0 && selectedDrugs.length > 0 && patient) {
       handleDrugsChange(selectedDrugs);
@@ -112,6 +109,8 @@ export default function NewPrescription() {
         infusion_time: d.infusion_time,
         diluent: d.diluent,
         volume_ml: d.volume_ml,
+        vial_size: d.vial_size,
+        vial_unit: d.vial_unit,
         is_valid: d.is_valid,
         variance_percent: d.variance_percent,
         validation_notes: d.validation_notes
@@ -127,6 +126,24 @@ export default function NewPrescription() {
   };
 
   const hasOutOfRange = drugDoses.some(d => !d.is_valid);
+
+  // Compute vial summary (group by drug_name, sum doses)
+  const vialSummary = (() => {
+    const grouped = {};
+    drugDoses.forEach(d => {
+      const key = d.drug_name;
+      if (!grouped[key]) grouped[key] = { ...d, total_prescribed: 0 };
+      grouped[key].total_prescribed += d.prescribed_dose || 0;
+    });
+    return Object.values(grouped).map(drug => {
+      const vialSize = drug.vial_size || null;
+      const unit = drug.vial_unit || drug.dose_unit || "mg";
+      const frascos = vialSize ? Math.ceil(drug.total_prescribed / vialSize) : null;
+      const totalDisp = frascos !== null ? frascos * vialSize : null;
+      const sobrante = totalDisp !== null ? (totalDisp - drug.total_prescribed).toFixed(2) : null;
+      return { ...drug, unit, frascos, totalDisp, sobrante };
+    });
+  })();
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -148,7 +165,7 @@ export default function NewPrescription() {
         ))}
       </div>
 
-      {/* ── STEP 1: Paciente + Médico ── */}
+      {/* ── STEP 1 ── */}
       {step === 1 && (
         <div className="space-y-6">
           <div className="bg-card rounded-xl border border-border p-6 space-y-4">
@@ -196,7 +213,7 @@ export default function NewPrescription() {
         </div>
       )}
 
-      {/* ── STEP 2: Medicamentos ── */}
+      {/* ── STEP 2 ── */}
       {step === 2 && (
         <div className="space-y-6">
           <div className="bg-card rounded-xl border border-border p-6 space-y-4">
@@ -213,24 +230,17 @@ export default function NewPrescription() {
             />
           </div>
 
-          {/* Protocol detection banner */}
           {selectedDrugs.length > 0 && (
-            <div className={`rounded-xl border p-4 ${
-              detectedProtocol ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200"
-            }`}>
+            <div className={`rounded-xl border p-4 ${detectedProtocol ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200"}`}>
               {detectedProtocol ? (
                 <div>
-                  <p className="text-sm font-semibold text-emerald-700">
-                    ✅ Protocolo detectado: {detectedProtocol.name}
-                  </p>
+                  <p className="text-sm font-semibold text-emerald-700">✅ Protocolo detectado: {detectedProtocol.name}</p>
                   <p className="text-xs text-emerald-600 mt-1">
                     {detectedProtocol.indication} · Ciclo cada {detectedProtocol.cycle_days} días · {detectedProtocol.total_cycles} ciclos · Coincidencia {Math.round(detectedProtocol.score * 100)}%
                   </p>
                 </div>
               ) : (
-                <p className="text-sm text-amber-700">
-                  ⚠️ No se identificó un protocolo estándar. Se guardará como prescripción personalizada.
-                </p>
+                <p className="text-sm text-amber-700">⚠️ No se identificó un protocolo estándar. Se guardará como prescripción personalizada.</p>
               )}
             </div>
           )}
@@ -246,7 +256,7 @@ export default function NewPrescription() {
         </div>
       )}
 
-      {/* ── STEP 3: Validación de dosis ── */}
+      {/* ── STEP 3 ── */}
       {step === 3 && (
         <div className="space-y-6">
           {/* Clinical alerts */}
@@ -267,100 +277,186 @@ export default function NewPrescription() {
             <div><span className="text-muted-foreground">Protocolo: </span><span className="font-medium">{detectedProtocol ? detectedProtocol.name : "Personalizado"}</span></div>
           </div>
 
-          {/* Dose cards */}
-          <div className="bg-card rounded-xl border border-border overflow-hidden">
-            <div className="px-6 py-4 border-b border-border">
-              <h2 className="font-semibold">Validación de Dosis</h2>
-              <p className="text-xs text-muted-foreground mt-1">Modifique las dosis prescritas. Tolerancia aceptable: ±10%</p>
-            </div>
-            <div className="divide-y divide-border">
-              {drugDoses.map((drug, i) => (
-                <div key={i} className={`p-4 sm:p-6 ${!drug.is_valid ? "bg-amber-50/30" : ""}`}>
-                  <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {drug.is_valid
-                          ? <Check className="h-4 w-4 text-emerald-500" />
-                          : <AlertTriangle className="h-4 w-4 text-amber-500" />}
-                        <span className="font-semibold text-sm">{drug.drug_name}</span>
-                        <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{drug.route}</span>
+          {/* Tabs */}
+          <div className="flex gap-1 bg-muted p-1 rounded-lg w-fit">
+            <button
+              onClick={() => setActiveTab("dosis")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "dosis" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Syringe className="h-4 w-4" /> Validación de Dosis
+            </button>
+            <button
+              onClick={() => setActiveTab("frascos")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "frascos" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <FlaskConical className="h-4 w-4" /> Frascos por Mezcla
+            </button>
+          </div>
+
+          {/* Tab: Dosis */}
+          {activeTab === "dosis" && (
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
+              <div className="px-6 py-4 border-b border-border">
+                <h2 className="font-semibold">Validación de Dosis</h2>
+                <p className="text-xs text-muted-foreground mt-1">Modifique las dosis prescritas. Tolerancia aceptable: ±10%</p>
+              </div>
+              <div className="divide-y divide-border">
+                {drugDoses.map((drug, i) => (
+                  <div key={i} className={`p-4 sm:p-6 ${!drug.is_valid ? "bg-amber-50/30" : ""}`}>
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {drug.is_valid
+                            ? <Check className="h-4 w-4 text-emerald-500" />
+                            : <AlertTriangle className="h-4 w-4 text-amber-500" />}
+                          <span className="font-semibold text-sm">{drug.drug_name}</span>
+                          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{drug.route}</span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                          <div>
+                            <span className="text-muted-foreground block">Referencia</span>
+                            <span className="font-mono font-medium">{drug.dose_per_unit} {drug.dose_basis}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground block">Calculada</span>
+                            <span className="font-mono font-medium text-primary">{drug.calculated_dose} {drug.dose_unit}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground block">Infusión</span>
+                            <span>{drug.infusion_time}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground block">Diluyente</span>
+                            <span>{drug.diluent}{drug.volume_ml > 0 ? ` (${drug.volume_ml} mL)` : ""}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                        <div>
-                          <span className="text-muted-foreground block">Referencia</span>
-                          <span className="font-mono font-medium">{drug.dose_per_unit} {drug.dose_basis}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground block">Calculada</span>
-                          <span className="font-mono font-medium text-primary">{drug.calculated_dose} {drug.dose_unit}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground block">Infusión</span>
-                          <span>{drug.infusion_time}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground block">Diluyente</span>
-                          <span>{drug.diluent}{drug.volume_ml > 0 ? ` (${drug.volume_ml} mL)` : ""}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="sm:w-auto flex flex-col sm:flex-row gap-3">
-                      <div className="space-y-2">
-                        <Label className="text-xs">Dosis prescrita ({drug.dose_unit})</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={drug.prescribed_dose}
-                          onChange={e => handleDoseChange(i, e.target.value)}
-                          className={`font-mono w-36 ${!drug.is_valid ? "border-amber-400 focus-visible:ring-amber-400" : ""}`}
-                        />
-                        <div className="text-xs space-y-0.5">
-                          <span className="text-muted-foreground">Calculada: </span>
-                          <span className="font-mono font-medium text-primary">{drug.calculated_dose} {drug.dose_unit}</span>
-                          {drug.variance_percent !== 0 && (
-                            <p className={`font-medium ${drug.is_valid ? "text-emerald-600" : "text-amber-600"}`}>
-                              {drug.variance_percent > 0 ? "+" : ""}{drug.variance_percent}% vs calculado
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      {drug.volume_ml > 0 && (
+                      <div className="sm:w-auto flex flex-col sm:flex-row gap-3">
                         <div className="space-y-2">
-                          <Label className="text-xs">Volumen prescrito (mL)</Label>
+                          <Label className="text-xs">Dosis prescrita ({drug.dose_unit})</Label>
                           <Input
                             type="number"
-                            step="1"
-                            value={drug.prescribed_volume ?? drug.volume_ml}
-                            onChange={e => handleVolumeChange(i, e.target.value)}
-                            className={`font-mono w-36 ${
-                              drug.prescribed_volume > 0 && drug.volume_ml > 0 &&
-                              Math.abs((drug.prescribed_volume - drug.volume_ml) / drug.volume_ml) > 0.10
-                                ? "border-amber-400 focus-visible:ring-amber-400" : ""
-                            }`}
+                            step="0.01"
+                            value={drug.prescribed_dose}
+                            onChange={e => handleDoseChange(i, e.target.value)}
+                            className={`font-mono w-36 ${!drug.is_valid ? "border-amber-400 focus-visible:ring-amber-400" : ""}`}
                           />
                           <div className="text-xs space-y-0.5">
-                            <span className="text-muted-foreground">Estándar: </span>
-                            <span className="font-mono font-medium text-primary">{drug.volume_ml} mL</span>
-                            {drug.prescribed_volume > 0 && drug.volume_ml > 0 && drug.prescribed_volume !== drug.volume_ml && (
-                              <p className={`font-medium ${
-                                Math.abs((drug.prescribed_volume - drug.volume_ml) / drug.volume_ml) <= 0.10
-                                  ? "text-emerald-600" : "text-amber-600"
-                              }`}>
-                                {drug.prescribed_volume > drug.volume_ml ? "+" : ""}
-                                {(((drug.prescribed_volume - drug.volume_ml) / drug.volume_ml) * 100).toFixed(1)}% vs estándar
+                            <span className="text-muted-foreground">Calculada: </span>
+                            <span className="font-mono font-medium text-primary">{drug.calculated_dose} {drug.dose_unit}</span>
+                            {drug.variance_percent !== 0 && (
+                              <p className={`font-medium ${drug.is_valid ? "text-emerald-600" : "text-amber-600"}`}>
+                                {drug.variance_percent > 0 ? "+" : ""}{drug.variance_percent}% vs calculado
                               </p>
                             )}
                           </div>
                         </div>
-                      )}
+                        {drug.volume_ml > 0 && (
+                          <div className="space-y-2">
+                            <Label className="text-xs">Volumen prescrito (mL)</Label>
+                            <Input
+                              type="number"
+                              step="1"
+                              value={drug.prescribed_volume ?? drug.volume_ml}
+                              onChange={e => handleVolumeChange(i, e.target.value)}
+                              className={`font-mono w-36 ${
+                                drug.prescribed_volume > 0 && drug.volume_ml > 0 &&
+                                Math.abs((drug.prescribed_volume - drug.volume_ml) / drug.volume_ml) > 0.10
+                                  ? "border-amber-400 focus-visible:ring-amber-400" : ""
+                              }`}
+                            />
+                            <div className="text-xs space-y-0.5">
+                              <span className="text-muted-foreground">Estándar: </span>
+                              <span className="font-mono font-medium text-primary">{drug.volume_ml} mL</span>
+                              {drug.prescribed_volume > 0 && drug.volume_ml > 0 && drug.prescribed_volume !== drug.volume_ml && (
+                                <p className={`font-medium ${
+                                  Math.abs((drug.prescribed_volume - drug.volume_ml) / drug.volume_ml) <= 0.10
+                                    ? "text-emerald-600" : "text-amber-600"
+                                }`}>
+                                  {drug.prescribed_volume > drug.volume_ml ? "+" : ""}
+                                  {(((drug.prescribed_volume - drug.volume_ml) / drug.volume_ml) * 100).toFixed(1)}% vs estándar
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {hasOutOfRange && (
+          {/* Tab: Frascos */}
+          {activeTab === "frascos" && (
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
+              <div className="px-6 py-4 border-b border-border">
+                <h2 className="font-semibold">Frascos Necesarios por Mezcla</h2>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Cantidad de frascos requeridos según la dosis prescrita. Medicamentos repetidos se suman.
+                </p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/30">
+                      {["Medicamento", "Vía", "Dosis Total Prescrita", "Tamaño Frasco", "Frascos Necesarios", "Disponible / Sobrante"].map(h => (
+                        <th key={h} className="text-left px-5 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {vialSummary.map((drug, i) => (
+                      <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+                        <td className="px-5 py-4">
+                          <p className="text-sm font-semibold">{drug.drug_name}</p>
+                        </td>
+                        <td className="px-5 py-4 text-sm text-muted-foreground">{drug.route}</td>
+                        <td className="px-5 py-4 text-sm font-mono font-medium">
+                          {drug.total_prescribed.toFixed(2)} {drug.unit}
+                        </td>
+                        <td className="px-5 py-4 text-sm font-mono">
+                          {drug.vial_size
+                            ? `${drug.vial_size} ${drug.unit}/frasco`
+                            : <span className="text-muted-foreground text-xs">No definido</span>}
+                        </td>
+                        <td className="px-5 py-4">
+                          {drug.frascos !== null ? (
+                            <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-lg">
+                              {drug.frascos}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">—</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-4 text-sm">
+                          {drug.totalDisp !== null ? (
+                            <div>
+                              <span className="font-mono font-medium">{drug.totalDisp} {drug.unit}</span>
+                              {parseFloat(drug.sobrante) > 0 && (
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                  Sobrante: {drug.sobrante} {drug.unit}
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {hasOutOfRange && activeTab === "dosis" && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
               <p className="text-sm text-amber-700 font-medium">
                 ⚠️ Algunas dosis están fuera del rango ±10%. Quedará como "Pendiente" para revisión del farmacéutico.
