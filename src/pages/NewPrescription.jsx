@@ -517,10 +517,7 @@ export default function NewPrescription() {
             </div>
           )}
 
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={() => setStep(2)} className="gap-2">
-              <ArrowLeft className="h-4 w-4" /> Anterior
-            </Button>
+          <div className="flex justify-end">
             <Button onClick={handleSubmit} disabled={saving} className="gap-2">
               {saving ? (
                 <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Guardando...</>
