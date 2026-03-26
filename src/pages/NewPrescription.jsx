@@ -17,8 +17,14 @@ export default function NewPrescription() {
   const [protocol, setProtocol] = useState(null);
   const [selectedDrugs, setSelectedDrugs] = useState([]);
   const [detectedProtocol, setDetectedProtocol] = useState(null);
+  const [drugDoses, setDrugDoses] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [doctorName, setDoctorName] = useState("");
+  const [doctorLicense, setDoctorLicense] = useState("");
+  const [cycleNumber, setCycleNumber] = useState(1);
+  const [dayOfCycle, setDayOfCycle] = useState(1);
+  const [prescriptionDate, setPrescriptionDate] = useState(new Date().toISOString().split("T")[0]);
 
   const protocolData = detectedProtocol || (protocol ? { name: protocol } : null);
 
