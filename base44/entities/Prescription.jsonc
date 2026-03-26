@@ -142,6 +142,51 @@
     "recipe_html": {
       "type": "string",
       "description": "Receta en HTML para imprimir"
+    },
+    "clinical_feedback": {
+      "type": "array",
+      "description": "Historial de feedback cl\u00ednico entre m\u00e9dico y farmac\u00e9utico",
+      "items": {
+        "type": "object",
+        "properties": {
+          "from_role": {
+            "type": "string",
+            "description": "Rol de quien comenta: medico, farmaceutico"
+          },
+          "from_name": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "state_history": {
+      "type": "array",
+      "description": "Historial de cambios de estado",
+      "items": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "changed_by": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "required": [

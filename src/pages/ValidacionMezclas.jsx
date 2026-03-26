@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, CheckCircle, XCircle } from "lucide-react";
+import ClinicalFeedback from "@/components/ClinicalFeedback";
+import StateTimeline from "@/components/StateTimeline";
 
 export default function ValidacionMezclas() {
   const [prescriptions, setPrescriptions] = useState([]);
@@ -16,9 +18,12 @@ export default function ValidacionMezclas() {
   const [status, setStatus] = useState("Pendiente");
   const [recommendation, setRecommendation] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+  const [currentRx, setCurrentRx] = useState(null);
 
   useEffect(() => {
     loadPrescriptions();
+    base44.auth.me().then(u => setUserRole(u.role || "admin"));
   }, []);
 
   const loadPrescriptions = async () => {
@@ -59,6 +64,8 @@ export default function ValidacionMezclas() {
     setMixIndex(mix.mixIndex);
     setStatus(mix.drug.is_valid ? "Validada" : "Pendiente");
     setRecommendation(mix.drug.validation_notes || "");
+    const rx = prescriptions.find(p => p.id === mix.rxId);
+    setCurrentRx(rx);
   };
 
   const handleValidate = async () => {
@@ -80,11 +87,21 @@ export default function ValidacionMezclas() {
         return d;
       });
 
+      // Agregar al historial de estados
+      const stateHistory = rx.state_history || [];
+      stateHistory.push({
+        status: status,
+        changed_by: user.full_name || user.email,
+        timestamp: new Date().toISOString(),
+        reason: recommendation || undefined
+      });
+
       await base44.entities.Prescription.update(selectedMix.rxId, {
         drugs: updatedDrugs,
         validation_status: status,
         validated_by: user.full_name || user.email,
-        validation_date: new Date().toISOString()
+        validation_date: new Date().toISOString(),
+        state_history: stateHistory
       });
 
       await loadPrescriptions();
@@ -246,6 +263,13 @@ export default function ValidacionMezclas() {
                   </div>
                 </div>
               </div>
+
+              {currentRx && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <ClinicalFeedback rx={currentRx} onUpdate={loadPrescriptions} userRole={userRole} />
+                  <StateTimeline rx={currentRx} />
+                </div>
+              )}
             </div>
           ) : (
             <div className="bg-card rounded-xl border border-border p-12 text-center text-muted-foreground">
