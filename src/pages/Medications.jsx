@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Search, Plus, FlaskConical, AlertTriangle, Package } from "lucide-react";
+import { Search, Plus, FlaskConical, AlertTriangle, Package, CheckCircle, XCircle, Clock } from "lucide-react";
 import moment from "moment";
 
 const STATUS_COLORS = {
@@ -72,6 +72,15 @@ export default function Medications() {
 
   const set = (field, value) => setForm(p => ({ ...p, [field]: value }));
 
+  const stats = {
+    total: medications.length,
+    disponible: medications.filter(m => m.status === "Disponible").length,
+    agotado: medications.filter(m => m.status === "Agotado").length,
+    porCaducar: medications.filter(m => m.expiration_date && moment(m.expiration_date).diff(moment(), "days") <= 30 && moment(m.expiration_date).diff(moment(), "days") >= 0).length,
+    caducado: medications.filter(m => m.status === "Caducado" || (m.expiration_date && moment(m.expiration_date).isBefore(moment()))).length,
+    totalFrascos: medications.reduce((sum, m) => sum + (m.quantity_available ?? m.quantity_received ?? 0), 0),
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" /></div>;
   }
@@ -86,6 +95,29 @@ export default function Medications() {
         <Button className="gap-2" onClick={openNew}>
           <Plus className="h-4 w-4" /> Dar de alta
         </Button>
+      </div>
+
+      {/* Inventory Summary */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {[
+          { label: "Total registros", value: stats.total, icon: Package, color: "text-foreground", bg: "bg-muted" },
+          { label: "Disponibles", value: stats.disponible, icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { label: "Agotados", value: stats.agotado, icon: XCircle, color: "text-red-600", bg: "bg-red-50" },
+          { label: "Por caducar", value: stats.porCaducar, icon: AlertTriangle, color: "text-amber-600", bg: "bg-amber-50" },
+          { label: "Caducados", value: stats.caducado, icon: Clock, color: "text-gray-500", bg: "bg-gray-100" },
+          { label: "Frascos disp.", value: stats.totalFrascos, icon: FlaskConical, color: "text-primary", bg: "bg-primary/10" },
+        ].map(stat => {
+          const Icon = stat.icon;
+          return (
+            <div key={stat.label} className="bg-card rounded-xl border border-border p-4">
+              <div className={`w-8 h-8 rounded-lg ${stat.bg} flex items-center justify-center mb-2`}>
+                <Icon className={`h-4 w-4 ${stat.color}`} />
+              </div>
+              <p className="text-2xl font-bold tracking-tight">{stat.value}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
+            </div>
+          );
+        })}
       </div>
 
       <div className="relative max-w-md">
