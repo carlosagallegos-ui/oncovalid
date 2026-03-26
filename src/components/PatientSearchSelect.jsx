@@ -25,7 +25,7 @@ export default function PatientSearchSelect({ onSelect, selectedPatient }) {
 
   const filtered = patients.filter(p =>
     p.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    p.medical_record_number?.toLowerCase().includes(search.toLowerCase())
+    p.nss?.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleCreate = async () => {
@@ -67,7 +67,7 @@ export default function PatientSearchSelect({ onSelect, selectedPatient }) {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nombre o expediente..."
+              placeholder="Buscar por nombre o NSS..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="pl-10"
@@ -86,7 +86,7 @@ export default function PatientSearchSelect({ onSelect, selectedPatient }) {
                     className="w-full text-left px-4 py-3 hover:bg-muted border-b last:border-0 transition-colors"
                   >
                     <p className="text-sm font-medium">{p.full_name}</p>
-                    <p className="text-xs text-muted-foreground">Exp: {p.medical_record_number} · {p.diagnosis}</p>
+                    <p className="text-xs text-muted-foreground">NSS: {p.nss || "—"} · {p.diagnosis}</p>
                   </button>
                 ))
               )}
