@@ -34,15 +34,13 @@ export default function Frascos() {
     });
   }, []);
 
-  const seen = new Set();
-  const filtered = prescriptions.filter(p => {
-    if (seen.has(p.id)) return false;
-    seen.add(p.id);
-    const matchSearch = !search ||
-      p.patient_name?.toLowerCase().includes(search.toLowerCase()) ||
-      p.protocol_name?.toLowerCase().includes(search.toLowerCase());
-    return matchSearch;
-  });
+  const uniqueMap = new Map();
+  prescriptions.forEach(p => { if (!uniqueMap.has(p.id)) uniqueMap.set(p.id, p); });
+  const filtered = Array.from(uniqueMap.values()).filter(p =>
+    !search ||
+    p.patient_name?.toLowerCase().includes(search.toLowerCase()) ||
+    p.protocol_name?.toLowerCase().includes(search.toLowerCase())
+  );
 
   if (loading) {
     return (
