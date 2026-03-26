@@ -14,6 +14,7 @@ export default function PrescriptionDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [rx, setRx] = useState(null);
+  const [patientNSS, setPatientNSS] = useState("");
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState("");
   const [updating, setUpdating] = useState(false);
@@ -49,7 +50,7 @@ export default function PrescriptionDetail() {
       <h1>Hoja de Preparaci\u00f3n</h1>
       <div class="meta">
         Paciente: <strong>${rx.patient_name}</strong> &nbsp;|&nbsp;
-        NSS: ${rx.patient_nss || "\u2014"} &nbsp;|&nbsp;
+        NSS: ${patientNSS || rx.patient_nss || "\u2014"} &nbsp;|&nbsp;
         SCT: ${rx.patient_bsa?.toFixed(2)} m\u00b2 &nbsp;|&nbsp; Peso: ${rx.patient_weight} kg<br/>
         M\u00e9dico: ${rx.prescribing_doctor} &nbsp;|&nbsp; C\u00e9dula: ${rx.doctor_license}<br/>
         Protocolo: ${rx.protocol_name} &nbsp;|&nbsp; Ciclo C${rx.cycle_number} D${rx.day_of_cycle} &nbsp;|&nbsp; Fecha: ${formatDate(rx.prescription_date)}
@@ -64,9 +65,19 @@ export default function PrescriptionDetail() {
   const [activeTab, setActiveTab] = useState("detalle");
 
   useEffect(() => {
-    base44.entities.Prescription.list("-created_date", 200).then(all => {
+    base44.entities.Prescription.list("-created_date", 200).then(async all => {
       const found = all.find(p => p.id === id);
-      if (found) { setRx(found); setNotes(found.validation_notes || ""); }
+      if (found) {
+        setRx(found);
+        setNotes(found.validation_notes || "");
+        const nss = (found.patient_nss || "").trim();
+        if (!nss && found.patient_id) {
+          const pats = await base44.entities.Patient.filter({ id: found.patient_id });
+          setPatientNSS((pats[0]?.nss || "").trim());
+        } else {
+          setPatientNSS(nss);
+        }
+      }
       setLoading(false);
     });
   }, [id]);
@@ -118,7 +129,7 @@ export default function PrescriptionDetail() {
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Paciente</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">Nombre:</span><span className="font-medium">{rx.patient_name}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">NSS:</span><span className="font-mono">{rx.patient_nss || "—"}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">NSS:</span><span className="font-mono">{patientNSS || "—"}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">SCT:</span><span className="font-mono">{rx.patient_bsa?.toFixed(2)} m²</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Peso:</span><span className="font-mono">{rx.patient_weight} kg</span></div>
           </div>
