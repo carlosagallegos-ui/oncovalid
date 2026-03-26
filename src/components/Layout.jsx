@@ -5,30 +5,30 @@ import { useState, useEffect } from "react";
 
 const ALL_NAV_ITEMS = [
   // Panel general
-  { path: "/", label: "Panel", icon: LayoutDashboard, roles: ["admin", "validador", "coordinador", "preparador", "mesa_atencion"] },
+  { path: "/", label: "Panel", icon: LayoutDashboard, roles: ["admin", "jefe_centro", "validador", "coordinador", "encargado_preparacion", "preparador", "mesa_atencion", "encargado_calidad"] },
 
   // Médico
-  { path: "/nueva-prescripcion", label: "Nueva Prescripción", icon: FilePlus, roles: ["admin", "medico"] },
+  { path: "/nueva-prescripcion", label: "Nueva Prescripción", icon: FilePlus, roles: ["admin", "jefe_centro", "medico"] },
   { path: "/mis-prescripciones", label: "Mis Prescripciones", icon: ClipboardList, roles: ["medico"] },
 
   // Validador
-  { path: "/prescripciones", label: "Validación de Prescripciones", icon: ClipboardList, roles: ["admin", "validador"] },
+  { path: "/prescripciones", label: "Validación de Prescripciones", icon: ClipboardList, roles: ["admin", "jefe_centro", "validador", "encargado_calidad"] },
 
-  // Coordinador
-  { path: "/frascos", label: "Frascos por Mezcla", icon: TestTube, roles: ["admin", "coordinador"] },
-  { path: "/preparacion", label: "Hojas de Preparación", icon: Beaker, roles: ["admin", "coordinador"] },
-  { path: "/medicamentos", label: "Medicamentos", icon: Package, roles: ["admin", "coordinador"] },
+  // Coordinador / Encargado de Preparación
+  { path: "/frascos", label: "Frascos por Mezcla", icon: TestTube, roles: ["admin", "jefe_centro", "coordinador", "encargado_preparacion"] },
+  { path: "/preparacion", label: "Hojas de Preparación", icon: Beaker, roles: ["admin", "jefe_centro", "coordinador", "encargado_preparacion"] },
+  { path: "/medicamentos", label: "Medicamentos", icon: Package, roles: ["admin", "jefe_centro", "coordinador", "encargado_preparacion"] },
 
   // Preparador
   { path: "/preparacion", label: "Mis Preparaciones", icon: Beaker, roles: ["preparador"] },
 
-  // Mesa de atención
-  { path: "/salidas", label: "Salidas de Medicamentos", icon: ArrowUpFromLine, roles: ["admin", "mesa_atencion"] },
-  { path: "/etiquetas", label: "Etiquetas de Mezclas", icon: Tag, roles: ["admin", "mesa_atencion"] },
+  // Mesa de atención / Encargado de calidad
+  { path: "/salidas", label: "Salidas de Medicamentos", icon: ArrowUpFromLine, roles: ["admin", "jefe_centro", "mesa_atencion", "encargado_calidad"] },
+  { path: "/etiquetas", label: "Etiquetas de Mezclas", icon: Tag, roles: ["admin", "jefe_centro", "mesa_atencion", "encargado_calidad"] },
 
   // Compartidos
-  { path: "/pacientes", label: "Pacientes", icon: Users, roles: ["admin", "validador", "medico", "coordinador"] },
-  { path: "/protocolos", label: "Protocolos", icon: BookOpen, roles: ["admin", "validador", "medico", "coordinador"] },
+  { path: "/pacientes", label: "Pacientes", icon: Users, roles: ["admin", "jefe_centro", "validador", "medico", "coordinador", "encargado_preparacion", "encargado_calidad"] },
+  { path: "/protocolos", label: "Protocolos", icon: BookOpen, roles: ["admin", "jefe_centro", "validador", "medico", "coordinador", "encargado_preparacion", "encargado_calidad"] },
 ];
 
 export default function Layout() {
