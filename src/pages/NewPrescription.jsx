@@ -153,11 +153,11 @@ export default function NewPrescription() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label>Nombre del médico *</Label>
-                <Input value={doctorName} onChange={e => setDoctorName(e.target.value)} placeholder="Dr. ..." />
+                <Input value={doctorName} onChange={e => setDoctorName(e.target.value.toUpperCase())} placeholder="Dr. ..." />
               </div>
               <div>
                 <Label>Cédula profesional *</Label>
-                <Input value={doctorLicense} onChange={e => setDoctorLicense(e.target.value)} placeholder="Número de cédula" />
+                <Input value={doctorLicense} onChange={e => setDoctorLicense(e.target.value.toUpperCase())} placeholder="Número de cédula" />
               </div>
             </div>
           </div>

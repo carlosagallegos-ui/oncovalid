@@ -107,15 +107,15 @@ export default function PatientSearchSelect({ onSelect, selectedPatient }) {
               <div className="grid grid-cols-2 gap-3 mt-4">
                 <div className="col-span-2">
                   <Label>Nombre completo *</Label>
-                  <Input value={newPatient.full_name} onChange={e => setNewPatient(p => ({ ...p, full_name: e.target.value }))} />
+                  <Input value={newPatient.full_name} onChange={e => setNewPatient(p => ({ ...p, full_name: e.target.value.toUpperCase() }))} />
                 </div>
                 <div>
                   <Label>No. Expediente *</Label>
-                  <Input value={newPatient.medical_record_number} onChange={e => setNewPatient(p => ({ ...p, medical_record_number: e.target.value }))} />
+                  <Input value={newPatient.medical_record_number} onChange={e => setNewPatient(p => ({ ...p, medical_record_number: e.target.value.toUpperCase() }))} />
                 </div>
                 <div>
                   <Label>NSS</Label>
-                  <Input value={newPatient.nss} onChange={e => setNewPatient(p => ({ ...p, nss: e.target.value }))} placeholder="Núm. Seguridad Social" />
+                  <Input value={newPatient.nss} onChange={e => setNewPatient(p => ({ ...p, nss: e.target.value.toUpperCase() }))} placeholder="Núm. Seguridad Social" />
                 </div>
                 <div>
                   <Label>Fecha de nacimiento</Label>
@@ -149,15 +149,15 @@ export default function PatientSearchSelect({ onSelect, selectedPatient }) {
                 )}
                 <div className="col-span-2">
                   <Label>Diagnóstico *</Label>
-                  <Input value={newPatient.diagnosis} onChange={e => setNewPatient(p => ({ ...p, diagnosis: e.target.value }))} />
+                  <Input value={newPatient.diagnosis} onChange={e => setNewPatient(p => ({ ...p, diagnosis: e.target.value.toUpperCase() }))} />
                 </div>
                 <div>
                   <Label>Código CIE-10</Label>
-                  <Input value={newPatient.cie10_code} onChange={e => setNewPatient(p => ({ ...p, cie10_code: e.target.value }))} />
+                  <Input value={newPatient.cie10_code} onChange={e => setNewPatient(p => ({ ...p, cie10_code: e.target.value.toUpperCase() }))} />
                 </div>
                 <div>
                   <Label>Alergias</Label>
-                  <Input value={newPatient.allergies} onChange={e => setNewPatient(p => ({ ...p, allergies: e.target.value }))} />
+                  <Input value={newPatient.allergies} onChange={e => setNewPatient(p => ({ ...p, allergies: e.target.value.toUpperCase() }))} />
                 </div>
                 <div>
                   <Label>Depuración Creatinina (mL/min)</Label>

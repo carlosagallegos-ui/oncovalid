@@ -87,4 +87,10 @@
   body {
     @apply bg-background text-foreground font-inter;
   }
+  input, textarea {
+    text-transform: uppercase;
+  }
+  input::placeholder, textarea::placeholder {
+    text-transform: none;
+  }
 }
