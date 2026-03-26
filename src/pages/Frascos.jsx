@@ -79,6 +79,7 @@ export default function Frascos() {
                 <div className="px-6 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
                     <p className="font-semibold text-sm">{rx.patient_name}</p>
+                    {rx.patient_nss && <p className="text-xs text-muted-foreground">NSS: {rx.patient_nss}</p>}
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {rx.protocol_name} · C{rx.cycle_number} D{rx.day_of_cycle} · {formatDate(rx.prescription_date || rx.created_date)}
                     </p>

@@ -100,7 +100,7 @@ export default function Dashboard() {
                   <tr key={rx.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4">
                       <p className="text-sm font-medium">{rx.patient_name}</p>
-                      <p className="text-xs text-muted-foreground">{rx.prescribing_doctor}</p>
+                      <p className="text-xs text-muted-foreground">{rx.patient_nss ? `NSS: ${rx.patient_nss}` : rx.prescribing_doctor}</p>
                     </td>
                     <td className="px-6 py-4 text-sm">{rx.protocol_name}</td>
                     <td className="px-6 py-4 text-sm font-mono">C{rx.cycle_number} D{rx.day_of_cycle}</td>
