@@ -4,17 +4,31 @@ import { base44 } from "@/api/base44Client";
 import { useState, useEffect } from "react";
 
 const ALL_NAV_ITEMS = [
-  { path: "/", label: "Panel", icon: LayoutDashboard, roles: ["admin", "validador"] },
+  // Panel general
+  { path: "/", label: "Panel", icon: LayoutDashboard, roles: ["admin", "validador", "coordinador", "preparador", "mesa_atencion"] },
+
+  // Médico
   { path: "/nueva-prescripcion", label: "Nueva Prescripción", icon: FilePlus, roles: ["admin", "medico"] },
   { path: "/mis-prescripciones", label: "Mis Prescripciones", icon: ClipboardList, roles: ["medico"] },
-  { path: "/prescripciones", label: "Prescripciones", icon: ClipboardList, roles: ["admin", "validador"] },
-  { path: "/frascos", label: "Frascos por Mezcla", icon: TestTube, roles: ["admin", "validador"] },
-  { path: "/preparacion", label: "Hojas de Preparación", icon: Beaker, roles: ["admin", "validador"] },
-  { path: "/salidas", label: "Salidas de Medicamentos", icon: ArrowUpFromLine, roles: ["admin", "validador"] },
-  { path: "/pacientes", label: "Pacientes", icon: Users, roles: ["admin", "validador", "medico"] },
-  { path: "/etiquetas", label: "Etiquetas de Mezclas", icon: Tag, roles: ["admin", "validador"] },
-  { path: "/medicamentos", label: "Medicamentos", icon: Package, roles: ["admin", "validador"] },
-  { path: "/protocolos", label: "Protocolos", icon: BookOpen, roles: ["admin", "validador", "medico"] },
+
+  // Validador
+  { path: "/prescripciones", label: "Validación de Prescripciones", icon: ClipboardList, roles: ["admin", "validador"] },
+
+  // Coordinador
+  { path: "/frascos", label: "Frascos por Mezcla", icon: TestTube, roles: ["admin", "coordinador"] },
+  { path: "/preparacion", label: "Hojas de Preparación", icon: Beaker, roles: ["admin", "coordinador"] },
+  { path: "/medicamentos", label: "Medicamentos", icon: Package, roles: ["admin", "coordinador"] },
+
+  // Preparador
+  { path: "/preparacion", label: "Mis Preparaciones", icon: Beaker, roles: ["preparador"] },
+
+  // Mesa de atención
+  { path: "/salidas", label: "Salidas de Medicamentos", icon: ArrowUpFromLine, roles: ["admin", "mesa_atencion"] },
+  { path: "/etiquetas", label: "Etiquetas de Mezclas", icon: Tag, roles: ["admin", "mesa_atencion"] },
+
+  // Compartidos
+  { path: "/pacientes", label: "Pacientes", icon: Users, roles: ["admin", "validador", "medico", "coordinador"] },
+  { path: "/protocolos", label: "Protocolos", icon: BookOpen, roles: ["admin", "validador", "medico", "coordinador"] },
 ];
 
 export default function Layout() {
@@ -23,7 +37,7 @@ export default function Layout() {
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(u => setUserRole(u.role || "validador"));
+    base44.auth.me().then(u => setUserRole(u.role || "admin"));
   }, []);
 
   const navItems = ALL_NAV_ITEMS.filter(item => !userRole || item.roles.includes(userRole));
