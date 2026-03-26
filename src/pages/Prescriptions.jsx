@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
-import DoseValidationRow from "@/components/DoseValidationRow";
 import { formatDate, formatDateTime } from "@/lib/dateUtils";
 
 export default function Prescriptions() {
@@ -17,16 +16,17 @@ export default function Prescriptions() {
   const [statusFilter, setStatusFilter] = useState("Pendiente");
   const [selectedRx, setSelectedRx] = useState(null);
   const [drugNotes, setDrugNotes] = useState({});
-  const [drugStatus, setDrugStatus] = useState({});
   const [updating, setUpdating] = useState(false);
-  const [drugContainers, setDrugContainers] = useState({});
 
   useEffect(() => {
-    base44.entities.Prescription.list("-created_date", 200).then(data => {
-      setPrescriptions(data);
-      setLoading(false);
-    });
+    loadPrescriptions();
   }, []);
+
+  const loadPrescriptions = async () => {
+    const data = await base44.entities.Prescription.list("-created_date", 200);
+    setPrescriptions(data);
+    setLoading(false);
+  };
 
   const filtered = prescriptions.filter(p => {
     const matchSearch = !search ||
@@ -39,55 +39,41 @@ export default function Prescriptions() {
 
   const handleSelectRx = (rx) => {
     setSelectedRx(rx);
-    const containers = {};
     const notes = {};
-    const status = {};
     (rx.drugs || []).forEach((d, i) => {
-      containers[i] = d.container_material || "Bolsa PVC";
-      notes[i] = d.drug_validation_notes || d.validation_notes || "";
-      status[i] = d.drug_validation_status?.toString() || "Pendiente";
+      notes[i] = d.validation_notes || "";
     });
-    setDrugContainers(containers);
     setDrugNotes(notes);
-    setDrugStatus(status);
   };
 
-  const handleValidateDrug = async (drugIndex, newDrugStatus) => {
+  const handleValidateDrug = async (drugIndex, newStatus) => {
+    if (!selectedRx) return;
     setUpdating(true);
+
     const user = await base44.auth.me();
-    
     const updatedDrugs = (selectedRx.drugs || []).map((d, i) => {
       if (i === drugIndex) {
         return {
           ...d,
-          container_material: drugContainers[i] || d.container_material || "Bolsa PVC",
-          drug_validation_status: newDrugStatus,
-          drug_validated_by: user.full_name || user.email,
-          drug_validation_date: new Date().toISOString(),
-          drug_validation_notes: drugNotes[i] || ""
+          is_valid: newStatus === "Validada",
+          validation_notes: drugNotes[i] || ""
         };
       }
-      return {
-        ...d,
-        container_material: drugContainers[i] || d.container_material || "Bolsa PVC"
-      };
+      return d;
     });
 
-    await base44.entities.Prescription.update(selectedRx.id, { drugs: updatedDrugs });
-    
-    // Recargar desde la BD para asegurar sincronización
-    const freshRx = await base44.entities.Prescription.filter({ id: selectedRx.id });
-    if (freshRx.length > 0) {
-      const reloaded = freshRx[0];
-      setSelectedRx(reloaded);
-      setPrescriptions(prev => prev.map(p => p.id === selectedRx.id ? reloaded : p));
-      
-      // Actualizar estado local con valores de la BD
-      const status = {};
-      (reloaded.drugs || []).forEach((d, i) => {
-        status[i] = d.drug_validation_status || "Pendiente";
-      });
-      setDrugStatus(status);
+    await base44.entities.Prescription.update(selectedRx.id, {
+      drugs: updatedDrugs,
+      validation_status: newStatus,
+      validated_by: user.full_name || user.email,
+      validation_date: new Date().toISOString()
+    });
+
+    // Recargar prescriptions
+    await loadPrescriptions();
+    const updated = prescriptions.find(p => p.id === selectedRx.id);
+    if (updated) {
+      setSelectedRx(updated);
     }
     setUpdating(false);
   };
@@ -123,7 +109,6 @@ export default function Prescriptions() {
                 <SelectItem value="Pendiente">Pendiente</SelectItem>
                 <SelectItem value="Validada">Validada</SelectItem>
                 <SelectItem value="Rechazada">Rechazada</SelectItem>
-                <SelectItem value="Ajustada">Ajustada</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -154,7 +139,7 @@ export default function Prescriptions() {
           </div>
         </div>
 
-        {/* Right: Detalle + Validación */}
+        {/* Right: Detalle */}
         <div className="lg:col-span-2">
           {selectedRx ? (
             <div className="space-y-6">
@@ -190,168 +175,71 @@ export default function Prescriptions() {
                 </div>
               )}
 
-              {/* Detalles de cada mezcla */}
+              {/* Validación de cada medicamento */}
               <div className="space-y-4">
-                <h2 className="font-semibold text-sm">Validación de Mezclas por Separado</h2>
-                {selectedRx.drugs?.map((drug, i) => {
-                  const concentrationFinal = drug.prescribed_dose && drug.prescribed_volume
-                    ? (drug.prescribed_dose / drug.prescribed_volume).toFixed(2)
-                    : null;
-                  
-                  return (
-                    <div key={i} className={`rounded-xl border p-4 space-y-4 ${
-                      drugStatus[i] === "Validada" ? "border-emerald-300 bg-emerald-50/30" :
-                      drugStatus[i] === "Rechazada" ? "border-red-300 bg-red-50/30" :
-                      drugStatus[i] === "Ajustada" ? "border-blue-300 bg-blue-50/30" :
-                      "border-border bg-card"
-                    }`}>
-                      {/* Encabezado mezcla */}
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold text-sm">{drug.drug_name}</p>
-                            <span className="text-xs bg-muted px-2 py-0.5 rounded-full">{drug.route}</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">Mezcla {i + 1} de {selectedRx.drugs.length}</p>
-                        </div>
-                        <div className="text-right">
-                          {drug.is_valid ? (
-                            <CheckCircle className="h-5 w-5 text-emerald-500" />
-                          ) : (
-                            <AlertTriangle className="h-5 w-5 text-amber-500" />
-                          )}
-                        </div>
+                <h2 className="font-semibold text-sm">Validación de Medicamentos</h2>
+                {selectedRx.drugs?.map((drug, i) => (
+                  <div key={i} className="rounded-xl border border-border p-4 space-y-3 bg-card">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-semibold text-sm">{drug.drug_name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {drug.prescribed_dose} {drug.dose_unit} • {drug.route} • {drug.volume_ml || "—"} mL
+                        </p>
                       </div>
-
-                      {/* Detalles técnicos */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-muted/50 rounded text-xs">
-                        <div>
-                          <p className="text-muted-foreground mb-0.5">Dosis Prescrita</p>
-                          <p className="font-mono font-medium">{drug.prescribed_dose} {drug.dose_unit}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground mb-0.5">Volumen Total</p>
-                          <p className="font-mono font-medium">{drug.prescribed_volume || drug.volume_ml || "—"} mL</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground mb-0.5">Concentración Final</p>
-                          <p className="font-mono font-medium">{concentrationFinal ? `${concentrationFinal} ${drug.dose_unit}/mL` : "—"}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground mb-0.5">Tipo de Solución</p>
-                          <p className="font-medium">{drug.solution_type || drug.diluent || "SSN 0.9%"}</p>
-                        </div>
-                      </div>
-
-                      {/* Material del recipiente */}
-                      <div className="space-y-2">
-                        <Label htmlFor={`container-${i}`} className="text-xs">Material del Recipiente *</Label>
-                        <Select
-                          value={drugContainers[i] || "Bolsa PVC"}
-                          onValueChange={v => setDrugContainers(prev => ({ ...prev, [i]: v }))}
-                        >
-                          <SelectTrigger id={`container-${i}`} className="h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Bolsa PVC">Bolsa PVC</SelectItem>
-                            <SelectItem value="Bolsa no PVC (EVA)">Bolsa no PVC (EVA)</SelectItem>
-                            <SelectItem value="Bolsa polipropileno">Bolsa polipropileno</SelectItem>
-                            <SelectItem value="Jeringa">Jeringa</SelectItem>
-                            <SelectItem value="Frasco vidrio">Frasco vidrio</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Notas por mezcla */}
-                      <div className="space-y-2">
-                        <Label htmlFor={`notes-${i}`} className="text-xs">Observaciones (Opcional)</Label>
-                        <Textarea
-                          id={`notes-${i}`}
-                          value={drugNotes[i] || ""}
-                          onChange={e => setDrugNotes(prev => ({ ...prev, [i]: e.target.value }))}
-                          placeholder="Notas sobre esta mezcla..."
-                          rows={2}
-                          className="text-xs"
-                        />
-                      </div>
-
-                      {/* Botones de validación por mezcla */}
-                      {drugStatus[i]?.toString() === "Pendiente" || !drugStatus[i] ? (
-                        <div className="flex gap-2 flex-wrap">
-                          <Button
-                            size="sm"
-                            onClick={() => handleValidateDrug(i, "Validada")}
-                            disabled={updating}
-                            className="gap-1 bg-emerald-600 hover:bg-emerald-700 text-xs h-8"
-                          >
-                            <CheckCircle className="h-3 w-3" /> Validar Mezcla
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleValidateDrug(i, "Ajustada")}
-                            disabled={updating}
-                            variant="outline"
-                            className="gap-1 border-blue-300 text-blue-700 hover:bg-blue-50 text-xs h-8"
-                          >
-                            <AlertTriangle className="h-3 w-3" /> Con Ajuste
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleValidateDrug(i, "Rechazada")}
-                            disabled={updating}
-                            variant="outline"
-                            className="gap-1 border-red-300 text-red-700 hover:bg-red-50 text-xs h-8"
-                          >
-                            <XCircle className="h-3 w-3" /> Rechazar
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs">
-                          <div>
-                            <span className="text-muted-foreground">Estado: </span>
-                            <span className="font-medium">{
-                              drugStatus[i] === "Validada" ? "✅ Validada" :
-                              drugStatus[i] === "Rechazada" ? "❌ Rechazada" :
-                              drugStatus[i] === "Ajustada" ? "⚠️ Con Ajuste" : "⏳ Pendiente"
-                            }</span>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setDrugStatus(prev => ({ ...prev, [i]: "Pendiente" }))}  
-                            className="h-6 text-xs"
-                          >
-                            Cambiar
-                          </Button>
-                        </div>
-                      )}
+                      {drug.is_valid && <CheckCircle className="h-5 w-5 text-emerald-500" />}
                     </div>
-                  );
-                })}
+
+                    <div className="space-y-2">
+                      <Label htmlFor={`notes-${i}`} className="text-xs">Observaciones (Opcional)</Label>
+                      <Textarea
+                        id={`notes-${i}`}
+                        value={drugNotes[i] || ""}
+                        onChange={e => setDrugNotes(prev => ({ ...prev, [i]: e.target.value }))}
+                        placeholder="Notas sobre esta mezcla..."
+                        rows={2}
+                        className="text-xs"
+                      />
+                    </div>
+
+                    {selectedRx.validation_status === "Pendiente" ? (
+                      <div className="flex gap-2 flex-wrap">
+                        <Button
+                          size="sm"
+                          onClick={() => handleValidateDrug(i, "Validada")}
+                          disabled={updating}
+                          className="gap-1 bg-emerald-600 hover:bg-emerald-700 text-xs h-8"
+                        >
+                          <CheckCircle className="h-3 w-3" /> Validar
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleValidateDrug(i, "Rechazada")}
+                          disabled={updating}
+                          variant="outline"
+                          className="gap-1 border-red-300 text-red-700 hover:bg-red-50 text-xs h-8"
+                        >
+                          <XCircle className="h-3 w-3" /> Rechazar
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
+                        Estado: <span className="font-medium">{selectedRx.validation_status}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
 
-              {/* Resumen de validación */}
-              <div className="bg-muted/50 rounded-xl p-4">
-                <h3 className="text-sm font-semibold mb-2">Resumen de Validación</h3>
-                <div className="text-sm space-y-1">
-                  <p><span className="text-muted-foreground">Total de mezclas: </span><span className="font-medium">{selectedRx.drugs?.length || 0}</span></p>
-                  <p><span className="text-muted-foreground">Validadas: </span>
-                    <span className="font-medium text-emerald-600">
-                      {Object.values(drugStatus).filter(s => s === "Validada").length}
-                    </span>
-                  </p>
-                  <p><span className="text-muted-foreground">Pendientes: </span>
-                    <span className="font-medium text-amber-600">
-                      {Object.values(drugStatus).filter(s => s === "Pendiente").length}
-                    </span>
-                  </p>
-                </div>
+              {/* Resumen */}
+              <div className="bg-muted/50 rounded-xl p-4 text-sm">
+                <p><span className="text-muted-foreground">Total de medicamentos: </span><span className="font-medium">{selectedRx.drugs?.length || 0}</span></p>
+                <p><span className="text-muted-foreground">Estado: </span><span className="font-medium">{selectedRx.validation_status}</span></p>
               </div>
             </div>
           ) : (
             <div className="bg-card rounded-xl border border-border p-12 text-center text-muted-foreground">
-              Selecciona una prescripción para ver los detalles
+              Selecciona una prescripción para validar
             </div>
           )}
         </div>
