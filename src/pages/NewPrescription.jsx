@@ -353,38 +353,20 @@ export default function NewPrescription() {
                             <span className="font-mono">{drug.volume_ml > 0 ? `${drug.volume_ml} mL` : "—"}</span>
                           </div>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <Label className="text-xs">Tipo de solución</Label>
-                            <Select value={drug.solution_type} onValueChange={v => handleSolutionChange(i, v)}>
-                              <SelectTrigger className="h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="SSN 0.9%">SSN 0.9%</SelectItem>
-                                <SelectItem value="SG 5%">SG 5%</SelectItem>
-                                <SelectItem value="Hartmann">Hartmann</SelectItem>
-                                <SelectItem value="Agua inyectable">Agua inyectable</SelectItem>
-                                <SelectItem value="Directo">Directo (sin dilución)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-xs">Material del recipiente</Label>
-                            <Select value={drug.container_material} onValueChange={v => handleContainerChange(i, v)}>
-                              <SelectTrigger className="h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Bolsa PVC">Bolsa PVC</SelectItem>
-                                <SelectItem value="Bolsa no PVC (EVA)">Bolsa no PVC (EVA)</SelectItem>
-                                <SelectItem value="Bolsa polipropileno">Bolsa polipropileno</SelectItem>
-                                <SelectItem value="Jeringa">Jeringa</SelectItem>
-                                <SelectItem value="Frasco vidrio">Frasco vidrio</SelectItem>
-                                <SelectItem value="N/A">N/A (vía oral)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Tipo de solución</Label>
+                          <Select value={drug.solution_type} onValueChange={v => handleSolutionChange(i, v)}>
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="SSN 0.9%">SSN 0.9%</SelectItem>
+                              <SelectItem value="SG 5%">SG 5%</SelectItem>
+                              <SelectItem value="Hartmann">Hartmann</SelectItem>
+                              <SelectItem value="Agua inyectable">Agua inyectable</SelectItem>
+                              <SelectItem value="Directo">Directo (sin dilución)</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
 
