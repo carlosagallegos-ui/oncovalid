@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
+import PrescriptionRecipe from "@/components/PrescriptionRecipe";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +34,8 @@ export default function NewPrescription() {
   const [alerts, setAlerts] = useState([]);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("dosis");
+  const [showRecipe, setShowRecipe] = useState(false);
+  const [savedRx, setSavedRx] = useState(null);
 
   const handleDrugsChange = (drugs) => {
     setSelectedDrugs(drugs);
@@ -140,8 +143,10 @@ export default function NewPrescription() {
       validation_status: "Pendiente",
       alerts
     };
-    await base44.entities.Prescription.create(data);
-    navigate("/");
+    const created = await base44.entities.Prescription.create(data);
+    setSavedRx(created);
+    setShowRecipe(true);
+    setSaving(false);
   };
 
   const hasOutOfRange = drugDoses.some(d => !d.is_valid);
@@ -275,6 +280,11 @@ export default function NewPrescription() {
             </Button>
           </div>
         </div>
+      )}
+
+      {/* Recipe modal */}
+      {showRecipe && savedRx && (
+        <PrescriptionRecipe rx={savedRx} onClose={() => navigate("/")} />
       )}
 
       {/* ── STEP 3 ── */}

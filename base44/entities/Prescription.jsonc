@@ -1,0 +1,164 @@
+{
+  "name": "Prescription",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID del paciente"
+    },
+    "patient_name": {
+      "type": "string",
+      "description": "Nombre del paciente"
+    },
+    "prescribing_doctor": {
+      "type": "string",
+      "description": "M\u00e9dico prescriptor"
+    },
+    "doctor_license": {
+      "type": "string",
+      "description": "C\u00e9dula profesional"
+    },
+    "protocol_name": {
+      "type": "string",
+      "description": "Nombre del protocolo"
+    },
+    "cycle_number": {
+      "type": "number",
+      "description": "N\u00famero de ciclo"
+    },
+    "day_of_cycle": {
+      "type": "number",
+      "description": "D\u00eda del ciclo"
+    },
+    "prescription_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "drugs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "drug_name": {
+            "type": "string"
+          },
+          "prescribed_dose": {
+            "type": "number"
+          },
+          "dose_unit": {
+            "type": "string"
+          },
+          "calculated_dose": {
+            "type": "number"
+          },
+          "dose_per_unit": {
+            "type": "number"
+          },
+          "dose_basis": {
+            "type": "string"
+          },
+          "route": {
+            "type": "string"
+          },
+          "infusion_time": {
+            "type": "string"
+          },
+          "diluent": {
+            "type": "string"
+          },
+          "volume_ml": {
+            "type": "number"
+          },
+          "is_valid": {
+            "type": "boolean"
+          },
+          "variance_percent": {
+            "type": "number"
+          },
+          "validation_notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "patient_bsa": {
+      "type": "number"
+    },
+    "patient_weight": {
+      "type": "number"
+    },
+    "validation_status": {
+      "type": "string",
+      "enum": [
+        "Pendiente",
+        "Validada",
+        "Rechazada",
+        "Ajustada"
+      ],
+      "description": "Estado de validaci\u00f3n"
+    },
+    "validated_by": {
+      "type": "string"
+    },
+    "validation_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "validation_notes": {
+      "type": "string"
+    },
+    "alerts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "inspected": {
+      "type": "boolean",
+      "description": "Mezcla inspeccionada por farmac\u00e9utico"
+    },
+    "inspected_by": {
+      "type": "string"
+    },
+    "inspected_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "delivered": {
+      "type": "boolean",
+      "description": "Mezcla entregada al \u00e1rea cl\u00ednica"
+    },
+    "delivered_by": {
+      "type": "string"
+    },
+    "delivered_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "delivered_to": {
+      "type": "string",
+      "description": "Servicio o enfermera que recibe"
+    },
+    "recipe_html": {
+      "type": "string",
+      "description": "Receta en HTML para imprimir"
+    }
+  },
+  "required": [
+    "patient_id",
+    "patient_name",
+    "prescribing_doctor",
+    "protocol_name",
+    "drugs"
+  ],
+  "rls": {
+    "create": {},
+    "read": {},
+    "update": {},
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
