@@ -41,6 +41,7 @@ export default function NewPrescription() {
           ...drug,
           calculated_dose: calc,
           prescribed_dose: calc,
+          prescribed_volume: drug.volume_ml || 0,
           dose_unit: unit,
           is_valid: true,
           variance_percent: 0,
@@ -73,6 +74,12 @@ export default function NewPrescription() {
     setDrugDoses(updated);
   };
 
+  const handleVolumeChange = (index, value) => {
+    const updated = [...drugDoses];
+    updated[index] = { ...updated[index], prescribed_volume: parseFloat(value) || 0 };
+    setDrugDoses(updated);
+  };
+
   // When moving to step 3, make sure doses are calculated
   const goToStep3 = () => {
     if (drugDoses.length === 0 && selectedDrugs.length > 0 && patient) {
@@ -96,6 +103,7 @@ export default function NewPrescription() {
       drugs: drugDoses.map(d => ({
         drug_name: d.drug_name,
         prescribed_dose: d.prescribed_dose,
+        prescribed_volume: d.prescribed_volume ?? d.volume_ml,
         dose_unit: d.dose_unit,
         calculated_dose: d.calculated_dose,
         dose_per_unit: d.dose_per_unit,
@@ -296,19 +304,54 @@ export default function NewPrescription() {
                         </div>
                       </div>
                     </div>
-                    <div className="sm:w-48 space-y-2">
-                      <Label className="text-xs">Dosis prescrita ({drug.dose_unit})</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={drug.prescribed_dose}
-                        onChange={e => handleDoseChange(i, e.target.value)}
-                        className={`font-mono ${!drug.is_valid ? "border-amber-400 focus-visible:ring-amber-400" : ""}`}
-                      />
-                      {drug.variance_percent !== 0 && (
-                        <p className={`text-xs font-medium ${drug.is_valid ? "text-emerald-600" : "text-amber-600"}`}>
-                          {drug.variance_percent > 0 ? "+" : ""}{drug.variance_percent}% del calculado
-                        </p>
+                    <div className="sm:w-auto flex flex-col sm:flex-row gap-3">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Dosis prescrita ({drug.dose_unit})</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={drug.prescribed_dose}
+                          onChange={e => handleDoseChange(i, e.target.value)}
+                          className={`font-mono w-36 ${!drug.is_valid ? "border-amber-400 focus-visible:ring-amber-400" : ""}`}
+                        />
+                        <div className="text-xs space-y-0.5">
+                          <span className="text-muted-foreground">Calculada: </span>
+                          <span className="font-mono font-medium text-primary">{drug.calculated_dose} {drug.dose_unit}</span>
+                          {drug.variance_percent !== 0 && (
+                            <p className={`font-medium ${drug.is_valid ? "text-emerald-600" : "text-amber-600"}`}>
+                              {drug.variance_percent > 0 ? "+" : ""}{drug.variance_percent}% vs calculado
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      {drug.volume_ml > 0 && (
+                        <div className="space-y-2">
+                          <Label className="text-xs">Volumen prescrito (mL)</Label>
+                          <Input
+                            type="number"
+                            step="1"
+                            value={drug.prescribed_volume ?? drug.volume_ml}
+                            onChange={e => handleVolumeChange(i, e.target.value)}
+                            className={`font-mono w-36 ${
+                              drug.prescribed_volume > 0 && drug.volume_ml > 0 &&
+                              Math.abs((drug.prescribed_volume - drug.volume_ml) / drug.volume_ml) > 0.10
+                                ? "border-amber-400 focus-visible:ring-amber-400" : ""
+                            }`}
+                          />
+                          <div className="text-xs space-y-0.5">
+                            <span className="text-muted-foreground">Estándar: </span>
+                            <span className="font-mono font-medium text-primary">{drug.volume_ml} mL</span>
+                            {drug.prescribed_volume > 0 && drug.volume_ml > 0 && drug.prescribed_volume !== drug.volume_ml && (
+                              <p className={`font-medium ${
+                                Math.abs((drug.prescribed_volume - drug.volume_ml) / drug.volume_ml) <= 0.10
+                                  ? "text-emerald-600" : "text-amber-600"
+                              }`}>
+                                {drug.prescribed_volume > drug.volume_ml ? "+" : ""}
+                                {(((drug.prescribed_volume - drug.volume_ml) / drug.volume_ml) * 100).toFixed(1)}% vs estándar
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
