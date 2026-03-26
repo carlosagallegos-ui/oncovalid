@@ -44,7 +44,7 @@ export default function Prescriptions() {
     const status = {};
     (rx.drugs || []).forEach((d, i) => {
       containers[i] = d.container_material || "Bolsa PVC";
-      notes[i] = d.validation_notes || "";
+      notes[i] = d.drug_validation_notes || d.validation_notes || "";
       status[i] = d.drug_validation_status || "Pendiente";
     });
     setDrugContainers(containers);
@@ -52,7 +52,7 @@ export default function Prescriptions() {
     setDrugStatus(status);
   };
 
-  const handleValidateDrug = async (drugIndex, drugStatus) => {
+  const handleValidateDrug = async (drugIndex, newDrugStatus) => {
     setUpdating(true);
     const user = await base44.auth.me();
     
@@ -61,24 +61,25 @@ export default function Prescriptions() {
         return {
           ...d,
           container_material: drugContainers[i] || d.container_material || "Bolsa PVC",
-          drug_validation_status: drugStatus,
+          drug_validation_status: newDrugStatus,
           drug_validated_by: user.full_name || user.email,
           drug_validation_date: new Date().toISOString(),
           drug_validation_notes: drugNotes[i] || ""
         };
       }
-      return d;
+      return {
+        ...d,
+        container_material: drugContainers[i] || d.container_material || "Bolsa PVC"
+      };
     });
 
-    const updated = {
-      drugs: updatedDrugs
-    };
+    const updatedRx = { ...selectedRx, drugs: updatedDrugs };
     
-    await base44.entities.Prescription.update(selectedRx.id, updated);
+    await base44.entities.Prescription.update(selectedRx.id, { drugs: updatedDrugs });
     
-    setPrescriptions(prev => prev.map(p => p.id === selectedRx.id ? { ...p, ...updated } : p));
-    setSelectedRx(prev => ({ ...prev, ...updated }));
-    setDrugStatus(prev => ({ ...prev, [drugIndex]: drugStatus }));
+    setSelectedRx(updatedRx);
+    setPrescriptions(prev => prev.map(p => p.id === selectedRx.id ? updatedRx : p));
+    setDrugStatus(prev => ({ ...prev, [drugIndex]: newDrugStatus }));
     setUpdating(false);
   };
 
