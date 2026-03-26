@@ -12,6 +12,7 @@ import PrescriptionDetail from './pages/PrescriptionDetail';
 import Prescriptions from './pages/Prescriptions';
 import Protocols from './pages/Protocols';
 import Frascos from './pages/Frascos';
+import Medications from './pages/Medications';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -45,6 +46,7 @@ const AuthenticatedApp = () => {
         <Route path="/prescripcion/:id" element={<PrescriptionDetail />} />
         <Route path="/prescripciones" element={<Prescriptions />} />
         <Route path="/frascos" element={<Frascos />} />
+        <Route path="/medicamentos" element={<Medications />} />
         <Route path="/protocolos" element={<Protocols />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
