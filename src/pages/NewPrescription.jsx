@@ -36,20 +36,20 @@ export default function NewPrescription() {
     setSelectedDrugs(drugs);
     if (patient && drugs.length > 0) {
       const doses = drugs.map(drug => {
-      const calc = calculateDose(drug, patient.bsa, patient.weight_kg, patient.creatinine_clearance);
-      const unit = drug.dose_basis === "AUC" ? "mg" : drug.dose_basis.replace("/m²", "").replace("/kg", "");
-      return {
-        ...drug,
-        calculated_dose: calc,
-        prescribed_dose: calc,
-        prescribed_volume: drug.volume_ml || 0,
-        dose_unit: unit,
-        solution_type: drug.diluent || "SSN 0.9%",
-        container_material: "Bolsa PVC",
-        is_valid: true,
-        variance_percent: 0,
-        validation_notes: "Dosis dentro del rango aceptable"
-      };
+        const calc = calculateDose(drug, patient.bsa, patient.weight_kg, patient.creatinine_clearance);
+        const unit = drug.dose_basis === "AUC" ? "mg" : drug.dose_basis.replace("/m²", "").replace("/kg", "");
+        return {
+          ...drug,
+          calculated_dose: calc,
+          prescribed_dose: calc,
+          prescribed_volume: drug.volume_ml || 0,
+          dose_unit: unit,
+          solution_type: drug.diluent || "SSN 0.9%",
+          container_material: "Bolsa PVC",
+          is_valid: true,
+          variance_percent: 0,
+          validation_notes: "Dosis dentro del rango aceptable"
+        };
       });
       setDrugDoses(doses);
       setAlerts(generateAlerts(drugs, patient));
@@ -144,7 +144,6 @@ export default function NewPrescription() {
 
   const hasOutOfRange = drugDoses.some(d => !d.is_valid);
 
-  // Compute vial summary (group by drug_name, sum doses)
   const vialSummary = (() => {
     const grouped = {};
     drugDoses.forEach(d => {
@@ -276,7 +275,6 @@ export default function NewPrescription() {
       {/* ── STEP 3 ── */}
       {step === 3 && (
         <div className="space-y-6">
-          {/* Clinical alerts */}
           {alerts.length > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-1">
               <div className="flex items-center gap-2 text-amber-700 font-semibold text-sm">
@@ -286,7 +284,6 @@ export default function NewPrescription() {
             </div>
           )}
 
-          {/* Summary bar */}
           <div className="bg-muted/50 rounded-xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
             <div><span className="text-muted-foreground">Paciente: </span><span className="font-medium">{patient?.full_name}</span></div>
             <div><span className="text-muted-foreground">SCT: </span><span className="font-mono font-medium">{patient?.bsa?.toFixed(2)} m²</span></div>
@@ -351,7 +348,6 @@ export default function NewPrescription() {
                             <span className="font-mono">{drug.volume_ml > 0 ? `${drug.volume_ml} mL` : "—"}</span>
                           </div>
                         </div>
-                        {/* Solution & Container selectors */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div className="space-y-1">
                             <Label className="text-xs">Tipo de solución</Label>
