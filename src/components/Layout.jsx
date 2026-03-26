@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FilePlus, ClipboardList, BookOpen, FlaskConical, LogOut, TestTube, Package, Users, Tag, Beaker } from "lucide-react";
+import { LayoutDashboard, FilePlus, ClipboardList, BookOpen, FlaskConical, LogOut, TestTube, Package, Users, Tag, Beaker, ArrowUpFromLine } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useState } from "react";
 
@@ -9,6 +9,7 @@ const navItems = [
   { path: "/prescripciones", label: "Prescripciones", icon: ClipboardList },
   { path: "/frascos", label: "Frascos por Mezcla", icon: TestTube },
   { path: "/preparacion", label: "Hojas de Preparación", icon: Beaker },
+  { path: "/salidas", label: "Salidas de Medicamentos", icon: ArrowUpFromLine },
   { path: "/pacientes", label: "Pacientes", icon: Users },
   { path: "/etiquetas", label: "Etiquetas de Mezclas", icon: Tag },
   { path: "/medicamentos", label: "Medicamentos", icon: Package },
