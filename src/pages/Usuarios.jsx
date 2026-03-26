@@ -13,7 +13,7 @@ export default function Usuarios() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({ full_name: "", role: "user", username: "", password: "", confirmPassword: "" });
+  const [formData, setFormData] = useState({ email: "", full_name: "", role: "user", username: "", password: "", confirmPassword: "" });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -35,10 +35,10 @@ export default function Usuarios() {
 
   const handleOpenModal = (user = null) => {
     if (user) {
-      setFormData({ full_name: user.full_name || "", role: user.role || "user", username: user.username || "", password: "", confirmPassword: "", userId: user.id });
+      setFormData({ email: user.email || "", full_name: user.full_name || "", role: user.role || "user", username: user.username || "", password: "", confirmPassword: "", userId: user.id });
       setIsEditing(true);
     } else {
-      setFormData({ full_name: "", role: "user", username: "", password: "", confirmPassword: "" });
+      setFormData({ email: "", full_name: "", role: "user", username: "", password: "", confirmPassword: "" });
       setIsEditing(false);
     }
     setShowModal(true);
@@ -46,7 +46,7 @@ export default function Usuarios() {
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setFormData({ full_name: "", role: "user", username: "", password: "", confirmPassword: "" });
+    setFormData({ email: "", full_name: "", role: "user", username: "", password: "", confirmPassword: "" });
     setIsEditing(false);
   };
 
@@ -66,13 +66,18 @@ export default function Usuarios() {
         });
         setUsers(users.map(u => u.id === formData.userId ? { ...u, full_name: formData.full_name, role: formData.role, username: formData.username } : u));
       } else {
-        // Crear usuario con datos iniciales
-        await base44.entities.User.create({
-          full_name: formData.full_name,
-          role: formData.role,
-          username: formData.username,
-          password: formData.password
-        });
+        // Invitar usuario por email
+        await base44.users.inviteUser(formData.email, formData.role);
+        // Actualizar datos adicionales del usuario recién creado
+        const allUsers = await base44.entities.User.list("-created_date", 100);
+        const newUser = allUsers.find(u => u.email === formData.email);
+        if (newUser) {
+          await base44.entities.User.update(newUser.id, {
+            full_name: formData.full_name,
+            username: formData.username,
+            password: formData.password
+          });
+        }
         await loadUsers();
       }
       handleCloseModal();
@@ -190,7 +195,19 @@ export default function Usuarios() {
 
             <div className="space-y-3">
               <div>
-                <Label htmlFor="name" className="text-xs">Nombre</Label>
+                <Label htmlFor="email" className="text-xs">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  disabled={isEditing}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="name" className="text-xs">Nombre Completo</Label>
                 <Input
                   id="name"
                   value={formData.full_name}
@@ -253,7 +270,7 @@ export default function Usuarios() {
             </div>
 
             <div className="flex gap-2 pt-2">
-              <Button onClick={handleSave} disabled={saving || !formData.full_name || !formData.username || !formData.password} className="flex-1 gap-2">
+              <Button onClick={handleSave} disabled={saving || !formData.email || !formData.full_name || !formData.username || !formData.password} className="flex-1 gap-2">
                 <Save className="h-4 w-4" />
                 {saving ? "Guardando..." : "Guardar"}
               </Button>
