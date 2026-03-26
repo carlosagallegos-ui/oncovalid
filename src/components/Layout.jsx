@@ -16,11 +16,8 @@ const ALL_NAV_ITEMS = [
 
   // Coordinador / Encargado de Preparación
   { path: "/frascos", label: "Frascos por Mezcla", icon: TestTube, roles: ["admin", "jefe_centro", "coordinador", "encargado_preparacion"] },
-  { path: "/preparacion", label: "Hojas de Preparación", icon: Beaker, roles: ["admin", "jefe_centro", "coordinador", "encargado_preparacion"] },
+  { path: "/preparacion", label: "Hojas de Preparación", icon: Beaker, roles: ["admin", "jefe_centro", "coordinador", "encargado_preparacion", "preparador"] },
   { path: "/medicamentos", label: "Medicamentos", icon: Package, roles: ["admin", "jefe_centro", "coordinador", "encargado_preparacion"] },
-
-  // Preparador
-  { path: "/preparacion", label: "Mis Preparaciones", icon: Beaker, roles: ["preparador"] },
 
   // Mesa de atención / Encargado de calidad
   { path: "/salidas", label: "Salidas de Medicamentos", icon: ArrowUpFromLine, roles: ["admin", "jefe_centro", "mesa_atencion", "encargado_calidad"] },
