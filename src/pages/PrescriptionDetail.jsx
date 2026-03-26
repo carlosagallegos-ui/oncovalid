@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, CheckCircle, XCircle, Printer, AlertTriangle } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
+import PreparationSheet from "@/components/PreparationSheet";
 import DoseValidationRow from "@/components/DoseValidationRow";
 import moment from "moment";
 
@@ -15,6 +16,7 @@ export default function PrescriptionDetail() {
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [activeTab, setActiveTab] = useState("detalle");
 
   useEffect(() => {
     base44.entities.Prescription.list("-created_date", 200).then(all => {
@@ -97,7 +99,27 @@ export default function PrescriptionDetail() {
         </div>
       )}
 
-      {/* Dose table */}
+      {/* Tabs */}
+      <div className="flex gap-1 bg-muted p-1 rounded-lg w-fit">
+        <button
+          onClick={() => setActiveTab("detalle")}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === "detalle" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Detalle de Dosis
+        </button>
+        <button
+          onClick={() => setActiveTab("preparacion")}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === "preparacion" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Preparación
+        </button>
+      </div>
+
+      {activeTab === "detalle" && (
       <div className="bg-card rounded-xl border border-border overflow-hidden">
         <div className="px-6 py-4 border-b border-border">
           <h2 className="font-semibold">Detalle de Medicamentos</h2>
@@ -117,6 +139,11 @@ export default function PrescriptionDetail() {
           </table>
         </div>
       </div>
+      )}
+
+      {activeTab === "preparacion" && (
+        <PreparationSheet drugs={rx.drugs} />
+      )}
 
       {/* Validation actions */}
       {rx.validation_status === "Pendiente" && (
