@@ -13,7 +13,7 @@ export default function Usuarios() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({ email: "", full_name: "", role: "user" });
+  const [formData, setFormData] = useState({ email: "", full_name: "", role: "user", username: "", password: "" });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -35,10 +35,10 @@ export default function Usuarios() {
 
   const handleOpenModal = (user = null) => {
     if (user) {
-      setFormData({ email: user.email, full_name: user.full_name || "", role: user.role || "user" });
+      setFormData({ email: user.email, full_name: user.full_name || "", role: user.role || "user", username: user.username || "", password: "" });
       setIsEditing(true);
     } else {
-      setFormData({ email: "", full_name: "", role: "user" });
+      setFormData({ email: "", full_name: "", role: "user", username: "", password: "" });
       setIsEditing(false);
     }
     setShowModal(true);
@@ -46,7 +46,7 @@ export default function Usuarios() {
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setFormData({ email: "", full_name: "", role: "user" });
+    setFormData({ email: "", full_name: "", role: "user", username: "", password: "" });
     setIsEditing(false);
   };
 
@@ -58,12 +58,22 @@ export default function Usuarios() {
         const userToUpdate = users.find(u => u.email === formData.email);
         await base44.entities.User.update(userToUpdate.id, {
           full_name: formData.full_name,
-          role: formData.role
+          role: formData.role,
+          username: formData.username,
+          password: formData.password
         });
-        setUsers(users.map(u => u.email === formData.email ? { ...u, full_name: formData.full_name, role: formData.role } : u));
+        setUsers(users.map(u => u.email === formData.email ? { ...u, full_name: formData.full_name, role: formData.role, username: formData.username, password: formData.password } : u));
       } else {
         // Crear usuario (invitarlo)
         await base44.users.inviteUser(formData.email, formData.role);
+        // Actualizar el usuario con username y password
+        const newUsers = await base44.entities.User.list("-created_date", 1);
+        if (newUsers.length > 0) {
+          await base44.entities.User.update(newUsers[0].id, {
+            username: formData.username,
+            password: formData.password
+          });
+        }
         // Recargar la lista
         await loadUsers();
       }
@@ -221,6 +231,28 @@ export default function Usuarios() {
                     <SelectItem value="encargado_calidad">Encargado Calidad</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="username" className="text-xs">Nombre de Usuario</Label>
+                <Input
+                  id="username"
+                  value={formData.username}
+                  onChange={e => setFormData({ ...formData, username: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="password" className="text-xs">Contraseña</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={e => setFormData({ ...formData, password: e.target.value })}
+                  placeholder={isEditing ? "Dejar en blanco para no cambiar" : ""}
+                  className="mt-1"
+                />
               </div>
             </div>
 
