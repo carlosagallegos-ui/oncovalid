@@ -8,6 +8,7 @@ import StatusBadge from "@/components/StatusBadge";
 import PreparationSheet from "@/components/PreparationSheet";
 import DoseValidationRow from "@/components/DoseValidationRow";
 import moment from "moment";
+import { formatDate, formatDateTime } from "@/lib/dateUtils";
 
 export default function PrescriptionDetail() {
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ export default function PrescriptionDetail() {
         NSS: ${rx.patient_nss || "\u2014"} &nbsp;|&nbsp;
         SCT: ${rx.patient_bsa?.toFixed(2)} m\u00b2 &nbsp;|&nbsp; Peso: ${rx.patient_weight} kg<br/>
         M\u00e9dico: ${rx.prescribing_doctor} &nbsp;|&nbsp; C\u00e9dula: ${rx.doctor_license}<br/>
-        Protocolo: ${rx.protocol_name} &nbsp;|&nbsp; Ciclo C${rx.cycle_number} D${rx.day_of_cycle} &nbsp;|&nbsp; Fecha: ${rx.prescription_date ? moment(rx.prescription_date).format("DD/MM/YYYY") : "\u2014"}
+        Protocolo: ${rx.protocol_name} &nbsp;|&nbsp; Ciclo C${rx.cycle_number} D${rx.day_of_cycle} &nbsp;|&nbsp; Fecha: ${formatDate(rx.prescription_date)}
       </div>
       ${content.innerHTML}
       </body></html>
@@ -128,7 +129,7 @@ export default function PrescriptionDetail() {
             <div className="flex justify-between"><span className="text-muted-foreground">Médico:</span><span className="font-medium">{rx.prescribing_doctor}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Cédula:</span><span className="font-mono">{rx.doctor_license}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Ciclo:</span><span className="font-mono">C{rx.cycle_number} D{rx.day_of_cycle}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Fecha:</span><span>{rx.prescription_date ? moment(rx.prescription_date).format("DD/MM/YYYY") : "—"}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Fecha:</span><span>{formatDate(rx.prescription_date)}</span></div>
           </div>
         </div>
       </div>
@@ -224,7 +225,7 @@ export default function PrescriptionDetail() {
       {rx.validation_status !== "Pendiente" && rx.validated_by && (
         <div className="bg-muted/50 rounded-xl p-4 text-sm space-y-1">
           <p><span className="text-muted-foreground">Validado por: </span><span className="font-medium">{rx.validated_by}</span></p>
-          <p><span className="text-muted-foreground">Fecha: </span>{rx.validation_date ? moment(rx.validation_date).format("DD/MM/YYYY HH:mm") : "—"}</p>
+          <p><span className="text-muted-foreground">Fecha: </span>{formatDateTime(rx.validation_date)}</p>
           {rx.validation_notes && <p><span className="text-muted-foreground">Notas: </span>{rx.validation_notes}</p>}
         </div>
       )}

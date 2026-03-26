@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, ArrowRight, Filter } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
-import moment from "moment";
+import { formatDate } from "@/lib/dateUtils";
 
 export default function Prescriptions() {
   const [prescriptions, setPrescriptions] = useState([]);
@@ -79,7 +79,7 @@ export default function Prescriptions() {
                     <td className="px-6 py-4 text-sm text-muted-foreground">{rx.prescribing_doctor}</td>
                     <td className="px-6 py-4 text-sm font-mono">C{rx.cycle_number} D{rx.day_of_cycle}</td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {moment(rx.prescription_date || rx.created_date).format("DD/MM/YYYY")}
+                      {formatDate(rx.prescription_date || rx.created_date)}
                     </td>
                     <td className="px-6 py-4"><StatusBadge status={rx.validation_status || "Pendiente"} /></td>
                     <td className="px-6 py-4">

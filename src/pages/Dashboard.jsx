@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { ClipboardList, CheckCircle, Clock, XCircle, FilePlus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/StatusBadge";
-import moment from "moment";
+import { formatDate } from "@/lib/dateUtils";
 
 export default function Dashboard() {
   const [prescriptions, setPrescriptions] = useState([]);
@@ -105,7 +105,7 @@ export default function Dashboard() {
                     <td className="px-6 py-4 text-sm">{rx.protocol_name}</td>
                     <td className="px-6 py-4 text-sm font-mono">C{rx.cycle_number} D{rx.day_of_cycle}</td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {moment(rx.prescription_date || rx.created_date).format("DD/MM/YYYY")}
+                    {formatDate(rx.prescription_date || rx.created_date)}
                     </td>
                     <td className="px-6 py-4"><StatusBadge status={rx.validation_status || "Pendiente"} /></td>
                     <td className="px-6 py-4">

@@ -4,7 +4,8 @@ import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, FlaskConical, ArrowRight } from "lucide-react";
-import moment from "moment";
+import { formatDate } from "@/lib/dateUtils";
+import LabelPrint, { buildFolios } from "@/components/LabelPrint";
 
 function calcVials(drugs) {
   const grouped = {};
@@ -25,14 +26,17 @@ export default function Frascos() {
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [folioMap, setFolioMap] = useState({});
 
   useEffect(() => {
     base44.entities.Prescription.list("-created_date", 200).then(data => {
       setPrescriptions(data);
+      setFolioMap(buildFolios(data));
       setLoading(false);
     });
   }, []);
 
+  const filteredAll = prescriptions;
   const filtered = prescriptions.filter(p =>
     !search ||
     p.patient_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -64,6 +68,8 @@ export default function Frascos() {
         />
       </div>
 
+      <LabelPrint prescriptions={filteredAll} folioMap={folioMap} />
+
       {filtered.length === 0 ? (
         <div className="bg-card rounded-xl border border-border p-12 text-center text-muted-foreground">
           No se encontraron prescripciones
@@ -79,7 +85,7 @@ export default function Frascos() {
                   <div>
                     <p className="font-semibold text-sm">{rx.patient_name}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {rx.protocol_name} · C{rx.cycle_number} D{rx.day_of_cycle} · {moment(rx.prescription_date || rx.created_date).format("DD/MM/YYYY")}
+                      {rx.protocol_name} · C{rx.cycle_number} D{rx.day_of_cycle} · {formatDate(rx.prescription_date || rx.created_date)}
                     </p>
                   </div>
                   <Link to={`/prescripcion/${rx.id}`}>
