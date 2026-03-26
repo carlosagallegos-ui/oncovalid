@@ -128,19 +128,19 @@ export default function PrescriptionDetail() {
         <div className="bg-card rounded-xl border border-border p-5 space-y-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Paciente</h3>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-muted-foreground">Nombre:</span><span className="font-medium">{rx.patient_name}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">NSS:</span><span className="font-mono">{patientNSS || "—"}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">SCT:</span><span className="font-mono">{rx.patient_bsa?.toFixed(2)} m²</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Peso:</span><span className="font-mono">{rx.patient_weight} kg</span></div>
+            <div className="flex justify-between gap-4"><span className="text-muted-foreground shrink-0">Nombre:</span><span className="font-medium text-right">{rx.patient_name}</span></div>
+            <div className="flex justify-between gap-4"><span className="text-muted-foreground shrink-0">NSS:</span><span className="font-mono text-right">{patientNSS || "—"}</span></div>
+            <div className="flex justify-between gap-4"><span className="text-muted-foreground shrink-0">SCT:</span><span className="font-mono">{rx.patient_bsa?.toFixed(2)} m²</span></div>
+            <div className="flex justify-between gap-4"><span className="text-muted-foreground shrink-0">Peso:</span><span className="font-mono">{rx.patient_weight} kg</span></div>
           </div>
         </div>
         <div className="bg-card rounded-xl border border-border p-5 space-y-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Prescripción</h3>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-muted-foreground">Médico:</span><span className="font-medium">{rx.prescribing_doctor}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Cédula:</span><span className="font-mono">{rx.doctor_license}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Ciclo:</span><span className="font-mono">C{rx.cycle_number} D{rx.day_of_cycle}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Fecha:</span><span>{formatDate(rx.prescription_date)}</span></div>
+            <div className="flex justify-between gap-4"><span className="text-muted-foreground shrink-0">Médico:</span><span className="font-medium text-right">{rx.prescribing_doctor}</span></div>
+            <div className="flex justify-between gap-4"><span className="text-muted-foreground shrink-0">Cédula:</span><span className="font-mono">{rx.doctor_license}</span></div>
+            <div className="flex justify-between gap-4"><span className="text-muted-foreground shrink-0">Ciclo:</span><span className="font-mono">C{rx.cycle_number} D{rx.day_of_cycle}</span></div>
+            <div className="flex justify-between gap-4"><span className="text-muted-foreground shrink-0">Fecha:</span><span>{formatDate(rx.prescription_date)}</span></div>
           </div>
         </div>
       </div>
