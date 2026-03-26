@@ -140,8 +140,8 @@ export default function NewPrescription() {
       validation_status: "Pendiente",
       alerts
     };
-    const created = await base44.entities.Prescription.create(data);
-    navigate(`/prescripcion/${created.id}`);
+    await base44.entities.Prescription.create(data);
+    navigate("/");
   };
 
   const hasOutOfRange = drugDoses.some(d => !d.is_valid);
