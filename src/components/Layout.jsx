@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FilePlus, ClipboardList, BookOpen, FlaskConical, LogOut, TestTube, Package, Users, Tag, Beaker, ArrowUpFromLine, BarChart3 } from "lucide-react";
+import { LayoutDashboard, FilePlus, ClipboardList, BookOpen, FlaskConical, LogOut, TestTube, Package, Users, Tag, Beaker, ArrowUpFromLine, BarChart3, Eye } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useState, useEffect } from "react";
 
@@ -13,6 +13,7 @@ const ALL_NAV_ITEMS = [
 
   // Validación
   { path: "/validacion-mezclas", label: "Validación de Mezclas", icon: TestTube, roles: ["admin", "jefe_centro", "validador", "encargado_calidad"] },
+  { path: "/estado-prescripciones", label: "Estado de Prescripciones", icon: Eye, roles: ["admin", "jefe_centro", "validador", "coordinador", "encargado_calidad"] },
 
   // Coordinador / Encargado de Preparación
   { path: "/frascos", label: "Frascos por Mezcla", icon: TestTube, roles: ["admin", "jefe_centro", "coordinador", "encargado_preparacion"] },
