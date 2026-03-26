@@ -94,7 +94,7 @@ export default function Frascos() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-border bg-muted/20">
-                        {["Medicamento", "Vía", "Dosis Prescrita", "Tamaño Frasco", "Frascos", "Total Disponible"].map(h => (
+                        {["Medicamento", "Vía", "Dosis Prescrita", "Tipo Solución", "Recipiente", "Tamaño Frasco", "Frascos", "Total Disponible"].map(h => (
                           <th key={h} className="text-left px-5 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
                         ))}
                       </tr>
@@ -112,7 +112,8 @@ export default function Frascos() {
                               </div>
                             </td>
                             <td className="px-5 py-3 text-sm text-muted-foreground">{drug.route}</td>
-                            <td className="px-5 py-3 text-sm font-mono">{drug.total_prescribed.toFixed(2)} {drug.unit}</td>
+                            <td className="px-5 py-3 text-sm">{drug.solution_type || drug.diluent || "—"}</td>
+                            <td className="px-5 py-3 text-sm">{drug.container_material || "—"}</td>
                             <td className="px-5 py-3 text-sm font-mono">
                               {drug.vial_size
                                 ? `${drug.vial_size} ${drug.unit}`

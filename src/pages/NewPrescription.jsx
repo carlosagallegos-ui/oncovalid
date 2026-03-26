@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, ArrowRight, Check, AlertTriangle, FlaskConical, Syringe } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PatientSearchSelect from "@/components/PatientSearchSelect";
 import DrugSelector from "@/components/DrugSelector";
 import { calculateDose, validateDose, generateAlerts } from "@/lib/chemoProtocols";
@@ -35,18 +36,20 @@ export default function NewPrescription() {
     setSelectedDrugs(drugs);
     if (patient && drugs.length > 0) {
       const doses = drugs.map(drug => {
-        const calc = calculateDose(drug, patient.bsa, patient.weight_kg, patient.creatinine_clearance);
-        const unit = drug.dose_basis === "AUC" ? "mg" : drug.dose_basis.replace("/m²", "").replace("/kg", "");
-        return {
-          ...drug,
-          calculated_dose: calc,
-          prescribed_dose: calc,
-          prescribed_volume: drug.volume_ml || 0,
-          dose_unit: unit,
-          is_valid: true,
-          variance_percent: 0,
-          validation_notes: "Dosis dentro del rango aceptable"
-        };
+      const calc = calculateDose(drug, patient.bsa, patient.weight_kg, patient.creatinine_clearance);
+      const unit = drug.dose_basis === "AUC" ? "mg" : drug.dose_basis.replace("/m²", "").replace("/kg", "");
+      return {
+        ...drug,
+        calculated_dose: calc,
+        prescribed_dose: calc,
+        prescribed_volume: drug.volume_ml || 0,
+        dose_unit: unit,
+        solution_type: drug.diluent || "SSN 0.9%",
+        container_material: "Bolsa PVC",
+        is_valid: true,
+        variance_percent: 0,
+        validation_notes: "Dosis dentro del rango aceptable"
+      };
       });
       setDrugDoses(doses);
       setAlerts(generateAlerts(drugs, patient));
@@ -75,6 +78,18 @@ export default function NewPrescription() {
   const handleVolumeChange = (index, value) => {
     const updated = [...drugDoses];
     updated[index] = { ...updated[index], prescribed_volume: parseFloat(value) || 0 };
+    setDrugDoses(updated);
+  };
+
+  const handleSolutionChange = (index, value) => {
+    const updated = [...drugDoses];
+    updated[index] = { ...updated[index], solution_type: value };
+    setDrugDoses(updated);
+  };
+
+  const handleContainerChange = (index, value) => {
+    const updated = [...drugDoses];
+    updated[index] = { ...updated[index], container_material: value };
     setDrugDoses(updated);
   };
 
@@ -111,6 +126,8 @@ export default function NewPrescription() {
         volume_ml: d.volume_ml,
         vial_size: d.vial_size,
         vial_unit: d.vial_unit,
+        solution_type: d.solution_type,
+        container_material: d.container_material,
         is_valid: d.is_valid,
         variance_percent: d.variance_percent,
         validation_notes: d.validation_notes
@@ -330,11 +347,46 @@ export default function NewPrescription() {
                             <span>{drug.infusion_time}</span>
                           </div>
                           <div>
-                            <span className="text-muted-foreground block">Diluyente</span>
-                            <span>{drug.diluent}{drug.volume_ml > 0 ? ` (${drug.volume_ml} mL)` : ""}</span>
+                            <span className="text-muted-foreground block">Vol. estándar</span>
+                            <span className="font-mono">{drug.volume_ml > 0 ? `${drug.volume_ml} mL` : "—"}</span>
+                          </div>
+                        </div>
+                        {/* Solution & Container selectors */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs">Tipo de solución</Label>
+                            <Select value={drug.solution_type} onValueChange={v => handleSolutionChange(i, v)}>
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="SSN 0.9%">SSN 0.9%</SelectItem>
+                                <SelectItem value="SG 5%">SG 5%</SelectItem>
+                                <SelectItem value="Hartmann">Hartmann</SelectItem>
+                                <SelectItem value="Agua inyectable">Agua inyectable</SelectItem>
+                                <SelectItem value="Directo">Directo (sin dilución)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Material del recipiente</Label>
+                            <Select value={drug.container_material} onValueChange={v => handleContainerChange(i, v)}>
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Bolsa PVC">Bolsa PVC</SelectItem>
+                                <SelectItem value="Bolsa no PVC (EVA)">Bolsa no PVC (EVA)</SelectItem>
+                                <SelectItem value="Bolsa polipropileno">Bolsa polipropileno</SelectItem>
+                                <SelectItem value="Jeringa">Jeringa</SelectItem>
+                                <SelectItem value="Frasco vidrio">Frasco vidrio</SelectItem>
+                                <SelectItem value="N/A">N/A (vía oral)</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
                       </div>
+
                       <div className="sm:w-auto flex flex-col sm:flex-row gap-3">
                         <div className="space-y-2">
                           <Label className="text-xs">Dosis prescrita ({drug.dose_unit})</Label>
