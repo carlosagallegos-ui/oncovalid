@@ -29,6 +29,7 @@ function buildFolios(prescriptions) {
 export default function Etiquetas() {
   const [prescriptions, setPrescriptions] = useState([]);
   const [medications, setMedications] = useState([]);
+  const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [folioMap, setFolioMap] = useState({});
@@ -37,13 +38,23 @@ export default function Etiquetas() {
     Promise.all([
       base44.entities.Prescription.list("-prescription_date", 200),
       base44.entities.Medication.list("-created_date", 200),
-    ]).then(([rxs, meds]) => {
+      base44.entities.Patient.list("-created_date", 500),
+    ]).then(([rxs, meds, pats]) => {
       setPrescriptions(rxs);
       setMedications(meds);
+      setPatients(pats);
       setFolioMap(buildFolios(rxs));
       setLoading(false);
     });
   }, []);
+
+  function getPatientNSS(rx) {
+    // First try from prescription, then fallback to Patient entity
+    const nss = (rx.patient_nss || "").trim();
+    if (nss) return nss;
+    const pat = patients.find(p => p.id === rx.patient_id || p.full_name === rx.patient_name);
+    return (pat?.nss || "").trim() || "—";
+  }
 
   function getMedInfo(drugName) {
     if (!drugName) return null;
@@ -59,7 +70,8 @@ export default function Etiquetas() {
       const key = `${rx.id}-${drug.drug_name}`;
       const stability = getDrugStability(drug.drug_name);
       const medInfo = getMedInfo(drug.drug_name);
-      allLabels.push({ rx, drug, folio: folioMap[key] || "—", stability, medInfo });
+      const nss = getPatientNSS(rx);
+      allLabels.push({ rx, drug, folio: folioMap[key] || "—", stability, medInfo, nss });
     });
   });
 
@@ -105,7 +117,7 @@ export default function Etiquetas() {
         @media print { body { margin: 0; } }
       </style></head><body>
       <div class="page">
-        ${labels.map(({ rx, drug, folio, stability, medInfo }) => `
+        ${labels.map(({ rx, drug, folio, stability, medInfo, nss }) => `
           <div class="label">
             <div class="col-left">
               <div>
@@ -139,7 +151,7 @@ export default function Etiquetas() {
             <div class="col-right">
               <div>
                 <div class="patient">${rx.patient_name}</div>
-                <div class="sub">NSS: ${rx.patient_nss || "—"}</div>
+                <div class="sub">NSS: ${nss ?? (rx.patient_nss?.trim() || "—")}</div>
                 <div class="sub">SCT: ${rx.patient_bsa?.toFixed(2) || "—"} m² &nbsp;·&nbsp; Peso: ${rx.patient_weight || "—"} kg</div>
               </div>
               <div>
@@ -193,7 +205,7 @@ export default function Etiquetas() {
         </div>
       ) : (
         <div className="flex flex-wrap gap-4">
-          {filtered.map(({ rx, drug, folio, stability, medInfo }, i) => (
+          {filtered.map(({ rx, drug, folio, stability, medInfo, nss }, i) => (
             <div key={i} className="bg-white border-2 border-border rounded-xl hover:border-primary/40 transition-colors flex flex-col" style={{width:'10cm', minHeight:'5cm'}}>
               {/* Label body: horizontal layout */}
               <div className="flex flex-1 gap-0 p-3">
@@ -246,7 +258,7 @@ export default function Etiquetas() {
                 <div className="flex flex-col justify-between" style={{flex:'1'}}>
                   <div className="space-y-0.5">
                     <p className="font-semibold text-xs">{rx.patient_name}</p>
-                    <p className="text-[9px] text-muted-foreground">NSS: {rx.patient_nss || "—"}</p>
+                    <p className="text-[9px] text-muted-foreground">NSS: {nss}</p>
                     <p className="text-[9px] text-muted-foreground">SCT: {rx.patient_bsa?.toFixed(2) || "—"} m² · Peso: {rx.patient_weight || "—"} kg</p>
                   </div>
                   <div className="space-y-0.5">
