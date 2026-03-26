@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, CheckCircle, XCircle, Printer, AlertTriangle } from "lucide-react";
@@ -10,20 +10,16 @@ import moment from "moment";
 
 export default function PrescriptionDetail() {
   const navigate = useNavigate();
-  const urlParams = new URLSearchParams(window.location.search);
-  const id = window.location.pathname.split("/").pop();
+  const { id } = useParams();
   const [rx, setRx] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState("");
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    base44.entities.Prescription.list().then(all => {
+    base44.entities.Prescription.list("-created_date", 200).then(all => {
       const found = all.find(p => p.id === id);
-      if (found) {
-        setRx(found);
-        setNotes(found.validation_notes || "");
-      }
+      if (found) { setRx(found); setNotes(found.validation_notes || ""); }
       setLoading(false);
     });
   }, [id]);
@@ -31,49 +27,31 @@ export default function PrescriptionDetail() {
   const handleValidate = async (status) => {
     setUpdating(true);
     const user = await base44.auth.me();
-    await base44.entities.Prescription.update(id, {
+    const updated = {
       validation_status: status,
       validated_by: user.full_name || user.email,
       validation_date: new Date().toISOString(),
       validation_notes: notes
-    });
-    setRx(prev => ({
-      ...prev,
-      validation_status: status,
-      validated_by: user.full_name || user.email,
-      validation_date: new Date().toISOString(),
-      validation_notes: notes
-    }));
+    };
+    await base44.entities.Prescription.update(id, updated);
+    setRx(prev => ({ ...prev, ...updated }));
     setUpdating(false);
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin"></div>
-      </div>
-    );
+    return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" /></div>;
   }
 
   if (!rx) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">Prescripción no encontrada</p>
-        <Button variant="outline" onClick={() => navigate("/prescripciones")} className="mt-4">Volver</Button>
-      </div>
-    );
+    return <div className="text-center py-12"><p className="text-muted-foreground">Prescripción no encontrada</p><Button variant="outline" onClick={() => navigate("/prescripciones")} className="mt-4">Volver</Button></div>;
   }
-
-  const hasInvalidDoses = rx.drugs?.some(d => !d.is_valid);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="h-4 w-4" /></Button>
           <div>
             <h1 className="text-xl font-bold tracking-tight">Prescripción</h1>
             <p className="text-sm text-muted-foreground">{rx.protocol_name}</p>
@@ -110,14 +88,11 @@ export default function PrescriptionDetail() {
 
       {/* Alerts */}
       {rx.alerts?.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-1">
           <div className="flex items-center gap-2 text-amber-700 font-semibold text-sm">
-            <AlertTriangle className="h-4 w-4" />
-            Alertas Clínicas
+            <AlertTriangle className="h-4 w-4" /> Alertas Clínicas
           </div>
-          {rx.alerts.map((alert, i) => (
-            <p key={i} className="text-sm text-amber-700">{alert}</p>
-          ))}
+          {rx.alerts.map((a, i) => <p key={i} className="text-sm text-amber-700">{a}</p>)}
         </div>
       )}
 
@@ -130,20 +105,13 @@ export default function PrescriptionDetail() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Medicamento</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Dosis Prescrita</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Dosis Calculada</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Referencia</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Vía</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Infusión</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Varianza</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Notas</th>
+                {["Medicamento", "Dosis Prescrita", "Dosis Calculada", "Referencia", "Vía", "Infusión", "Varianza", "Notas"].map(h => (
+                  <th key={h} className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {rx.drugs?.map((drug, i) => (
-                <DoseValidationRow key={i} drug={drug} index={i} />
-              ))}
+              {rx.drugs?.map((drug, i) => <DoseValidationRow key={i} drug={drug} />)}
             </tbody>
           </table>
         </div>
@@ -155,39 +123,17 @@ export default function PrescriptionDetail() {
           <h2 className="font-semibold">Validación Farmacéutica</h2>
           <div>
             <label className="text-sm font-medium block mb-2">Observaciones del farmacéutico</label>
-            <Textarea
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="Escriba sus observaciones..."
-              rows={3}
-            />
+            <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Escriba sus observaciones..." rows={3} />
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button
-              onClick={() => handleValidate("Validada")}
-              disabled={updating}
-              className="gap-2 bg-emerald-600 hover:bg-emerald-700"
-            >
-              <CheckCircle className="h-4 w-4" />
-              Validar Prescripción
+            <Button onClick={() => handleValidate("Validada")} disabled={updating} className="gap-2 bg-emerald-600 hover:bg-emerald-700">
+              <CheckCircle className="h-4 w-4" /> Validar Prescripción
             </Button>
-            <Button
-              onClick={() => handleValidate("Ajustada")}
-              disabled={updating}
-              variant="outline"
-              className="gap-2 border-blue-300 text-blue-700 hover:bg-blue-50"
-            >
-              <AlertTriangle className="h-4 w-4" />
-              Validar con Ajuste
+            <Button onClick={() => handleValidate("Ajustada")} disabled={updating} variant="outline" className="gap-2 border-blue-300 text-blue-700 hover:bg-blue-50">
+              <AlertTriangle className="h-4 w-4" /> Validar con Ajuste
             </Button>
-            <Button
-              onClick={() => handleValidate("Rechazada")}
-              disabled={updating}
-              variant="outline"
-              className="gap-2 border-red-300 text-red-700 hover:bg-red-50"
-            >
-              <XCircle className="h-4 w-4" />
-              Rechazar
+            <Button onClick={() => handleValidate("Rechazada")} disabled={updating} variant="outline" className="gap-2 border-red-300 text-red-700 hover:bg-red-50">
+              <XCircle className="h-4 w-4" /> Rechazar
             </Button>
           </div>
         </div>
@@ -196,9 +142,9 @@ export default function PrescriptionDetail() {
       {/* Validated info */}
       {rx.validation_status !== "Pendiente" && rx.validated_by && (
         <div className="bg-muted/50 rounded-xl p-4 text-sm space-y-1">
-          <p><span className="text-muted-foreground">Validado por:</span> <span className="font-medium">{rx.validated_by}</span></p>
-          <p><span className="text-muted-foreground">Fecha:</span> {rx.validation_date ? moment(rx.validation_date).format("DD/MM/YYYY HH:mm") : "—"}</p>
-          {rx.validation_notes && <p><span className="text-muted-foreground">Notas:</span> {rx.validation_notes}</p>}
+          <p><span className="text-muted-foreground">Validado por: </span><span className="font-medium">{rx.validated_by}</span></p>
+          <p><span className="text-muted-foreground">Fecha: </span>{rx.validation_date ? moment(rx.validation_date).format("DD/MM/YYYY HH:mm") : "—"}</p>
+          {rx.validation_notes && <p><span className="text-muted-foreground">Notas: </span>{rx.validation_notes}</p>}
         </div>
       )}
     </div>
