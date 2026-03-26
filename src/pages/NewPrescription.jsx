@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, ArrowRight, Check, AlertTriangle, FlaskConical, Syringe } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PatientSearchSelect from "@/components/PatientSearchSelect";
+import DoctorSearchSelect from "@/components/DoctorSearchSelect";
 import DrugSelector from "@/components/DrugSelector";
 import { calculateDose, validateDose, generateAlerts } from "@/lib/chemoProtocols";
 
@@ -16,6 +17,7 @@ export default function NewPrescription() {
 
   // Step 1
   const [patient, setPatient] = useState(null);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [doctorName, setDoctorName] = useState("");
   const [doctorLicense, setDoctorLicense] = useState("");
   const [cycleNumber, setCycleNumber] = useState(1);
@@ -191,16 +193,19 @@ export default function NewPrescription() {
 
           <div className="bg-card rounded-xl border border-border p-6 space-y-4">
             <h2 className="font-semibold">Médico Prescriptor</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label>Nombre del médico *</Label>
-                <Input value={doctorName} onChange={e => setDoctorName(e.target.value.toUpperCase())} placeholder="Dr. ..." />
-              </div>
-              <div>
-                <Label>Cédula profesional *</Label>
-                <Input value={doctorLicense} onChange={e => setDoctorLicense(e.target.value.toUpperCase())} placeholder="Número de cédula" />
-              </div>
-            </div>
+            <DoctorSearchSelect
+              selectedDoctor={selectedDoctor}
+              onSelect={(doc) => {
+                setSelectedDoctor(doc);
+                if (doc) {
+                  setDoctorName(doc.full_name);
+                  setDoctorLicense(doc.license);
+                } else {
+                  setDoctorName("");
+                  setDoctorLicense("");
+                }
+              }}
+            />
           </div>
 
           <div className="bg-card rounded-xl border border-border p-6 space-y-4">
