@@ -71,6 +71,7 @@ export default function PrescriptionDetail() {
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Paciente</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">Nombre:</span><span className="font-medium">{rx.patient_name}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">NSS:</span><span className="font-mono">{rx.patient_nss || "—"}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">SCT:</span><span className="font-mono">{rx.patient_bsa?.toFixed(2)} m²</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Peso:</span><span className="font-mono">{rx.patient_weight} kg</span></div>
           </div>

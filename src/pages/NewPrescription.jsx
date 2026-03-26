@@ -108,6 +108,7 @@ export default function NewPrescription() {
         variance_percent: d.variance_percent,
         validation_notes: d.validation_notes
       })),
+      patient_nss: patient.nss || "",
       patient_bsa: patient.bsa,
       patient_weight: patient.weight_kg,
       validation_status: "Pendiente",

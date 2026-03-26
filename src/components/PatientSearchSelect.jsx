@@ -13,7 +13,7 @@ export default function PatientSearchSelect({ onSelect, selectedPatient }) {
   const [search, setSearch] = useState("");
   const [showNew, setShowNew] = useState(false);
   const [newPatient, setNewPatient] = useState({
-    full_name: "", medical_record_number: "", date_of_birth: "",
+    full_name: "", medical_record_number: "", nss: "", date_of_birth: "",
     gender: "Masculino", weight_kg: "", height_cm: "",
     diagnosis: "", cie10_code: "", allergies: "",
     creatinine_clearance: "", hepatic_function: "Normal", status: "Activo"
@@ -56,7 +56,7 @@ export default function PatientSearchSelect({ onSelect, selectedPatient }) {
             <div>
               <p className="font-semibold text-sm">{selectedPatient.full_name}</p>
               <p className="text-xs text-muted-foreground">
-                Exp: {selectedPatient.medical_record_number} · SCT: {selectedPatient.bsa?.toFixed(2)} m² · {selectedPatient.weight_kg} kg
+                Exp: {selectedPatient.medical_record_number}{selectedPatient.nss ? ` · NSS: ${selectedPatient.nss}` : ""} · SCT: {selectedPatient.bsa?.toFixed(2)} m² · {selectedPatient.weight_kg} kg · SCT: {selectedPatient.bsa?.toFixed(2)} m² · {selectedPatient.weight_kg} kg
               </p>
             </div>
           </div>
@@ -112,6 +112,10 @@ export default function PatientSearchSelect({ onSelect, selectedPatient }) {
                 <div>
                   <Label>No. Expediente *</Label>
                   <Input value={newPatient.medical_record_number} onChange={e => setNewPatient(p => ({ ...p, medical_record_number: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>NSS</Label>
+                  <Input value={newPatient.nss} onChange={e => setNewPatient(p => ({ ...p, nss: e.target.value }))} placeholder="Núm. Seguridad Social" />
                 </div>
                 <div>
                   <Label>Fecha de nacimiento</Label>
