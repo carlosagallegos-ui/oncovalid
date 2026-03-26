@@ -24,6 +24,9 @@ const ALL_NAV_ITEMS = [
   { path: "/salidas", label: "Salidas de Medicamentos", icon: ArrowUpFromLine, roles: ["admin", "jefe_centro", "mesa_atencion", "encargado_calidad"] },
   { path: "/etiquetas", label: "Etiquetas de Mezclas", icon: Tag, roles: ["admin", "jefe_centro", "mesa_atencion", "encargado_calidad"] },
 
+  // Enfermero - Aplicación de mezclas
+  { path: "/aplicacion-mezclas", label: "Aplicación de Mezclas", icon: Syringe, roles: ["admin", "jefe_centro", "enfermero", "encargado_calidad"] },
+
   // Informes
   { path: "/informes", label: "Informes", icon: BarChart3, roles: ["admin", "jefe_centro", "validador", "coordinador", "encargado_preparacion", "encargado_calidad"] },
 
