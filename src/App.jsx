@@ -14,6 +14,7 @@ import Protocols from './pages/Protocols';
 import Frascos from './pages/Frascos';
 import Medications from './pages/Medications';
 import Patients from './pages/Patients';
+import Etiquetas from './pages/Etiquetas';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -49,6 +50,7 @@ const AuthenticatedApp = () => {
         <Route path="/frascos" element={<Frascos />} />
         <Route path="/medicamentos" element={<Medications />} />
         <Route path="/pacientes" element={<Patients />} />
+        <Route path="/etiquetas" element={<Etiquetas />} />
         <Route path="/protocolos" element={<Protocols />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>

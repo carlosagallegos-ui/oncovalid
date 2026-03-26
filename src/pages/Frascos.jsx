@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, FlaskConical, ArrowRight } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
-import LabelPrint, { buildFolios } from "@/components/LabelPrint";
 
 function calcVials(drugs) {
   const grouped = {};
@@ -26,17 +25,15 @@ export default function Frascos() {
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [folioMap, setFolioMap] = useState({});
+
 
   useEffect(() => {
     base44.entities.Prescription.list("-created_date", 200).then(data => {
       setPrescriptions(data);
-      setFolioMap(buildFolios(data));
       setLoading(false);
     });
   }, []);
 
-  const filteredAll = prescriptions;
   const filtered = prescriptions.filter(p =>
     !search ||
     p.patient_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -67,8 +64,6 @@ export default function Frascos() {
           className="pl-10"
         />
       </div>
-
-      <LabelPrint prescriptions={filteredAll} folioMap={folioMap} />
 
       {filtered.length === 0 ? (
         <div className="bg-card rounded-xl border border-border p-12 text-center text-muted-foreground">
