@@ -16,6 +16,50 @@ export default function PrescriptionDetail() {
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState("");
   const [updating, setUpdating] = useState(false);
+
+  const printPrep = () => {
+    const content = document.getElementById("prep-print-area");
+    if (!content) return;
+    const win = window.open("", "_blank");
+    win.document.write(`
+      <html><head><title>Preparación - ${rx.patient_name}</title>
+      <style>
+        body { font-family: Arial, sans-serif; font-size: 13px; color: #111; margin: 24px; }
+        h1 { font-size: 18px; margin-bottom: 4px; }
+        .meta { color: #555; font-size: 12px; margin-bottom: 20px; }
+        .drug-block { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
+        .drug-header { background: #f4f4f4; padding: 10px 14px; font-weight: bold; font-size: 13px; border-bottom: 1px solid #ddd; }
+        .drug-body { padding: 14px; }
+        .grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 14px; }
+        .box { background: #f8f8f8; border-radius: 6px; padding: 8px; text-align: center; }
+        .box .label { font-size: 10px; color: #777; margin-bottom: 3px; }
+        .box .val { font-weight: bold; font-size: 14px; }
+        ol { margin: 0 0 14px 18px; padding: 0; }
+        ol li { margin-bottom: 8px; }
+        .legend { border: 2px solid #0ea5e9; border-radius: 8px; padding: 12px; background: #f0faff; }
+        .legend-title { font-size: 11px; font-weight: bold; color: #0369a1; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+        .grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; text-align: center; }
+        .grid3 .label { font-size: 10px; color: #777; }
+        .grid3 .val { font-weight: bold; color: #0369a1; font-size: 16px; }
+        .grid3 .sub { font-size: 10px; color: #888; }
+        .warn { background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 10px; color: #92400e; font-size: 12px; }
+        @media print { body { margin: 10px; } }
+      </style></head><body>
+      <h1>Hoja de Preparaci\u00f3n</h1>
+      <div class="meta">
+        Paciente: <strong>${rx.patient_name}</strong> &nbsp;|&nbsp;
+        NSS: ${rx.patient_nss || "\u2014"} &nbsp;|&nbsp;
+        SCT: ${rx.patient_bsa?.toFixed(2)} m\u00b2 &nbsp;|&nbsp; Peso: ${rx.patient_weight} kg<br/>
+        M\u00e9dico: ${rx.prescribing_doctor} &nbsp;|&nbsp; C\u00e9dula: ${rx.doctor_license}<br/>
+        Protocolo: ${rx.protocol_name} &nbsp;|&nbsp; Ciclo C${rx.cycle_number} D${rx.day_of_cycle} &nbsp;|&nbsp; Fecha: ${rx.prescription_date ? moment(rx.prescription_date).format("DD/MM/YYYY") : "\u2014"}
+      </div>
+      ${content.innerHTML}
+      </body></html>
+    `);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); }, 400);
+  };
   const [activeTab, setActiveTab] = useState("detalle");
 
   useEffect(() => {
@@ -100,23 +144,30 @@ export default function PrescriptionDetail() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-muted p-1 rounded-lg w-fit">
-        <button
-          onClick={() => setActiveTab("detalle")}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === "detalle" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Detalle de Dosis
-        </button>
-        <button
-          onClick={() => setActiveTab("preparacion")}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === "preparacion" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Preparación
-        </button>
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex gap-1 bg-muted p-1 rounded-lg">
+          <button
+            onClick={() => setActiveTab("detalle")}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === "detalle" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Detalle de Dosis
+          </button>
+          <button
+            onClick={() => setActiveTab("preparacion")}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === "preparacion" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Preparación
+          </button>
+        </div>
+        {activeTab === "preparacion" && (
+          <Button variant="outline" size="sm" className="gap-1" onClick={printPrep}>
+            <Printer className="h-3.5 w-3.5" /> Imprimir preparación
+          </Button>
+        )}
       </div>
 
       {activeTab === "detalle" && (
@@ -142,7 +193,9 @@ export default function PrescriptionDetail() {
       )}
 
       {activeTab === "preparacion" && (
-        <PreparationSheet drugs={rx.drugs} />
+        <div id="prep-print-area">
+          <PreparationSheet drugs={rx.drugs} />
+        </div>
       )}
 
       {/* Validation actions */}
