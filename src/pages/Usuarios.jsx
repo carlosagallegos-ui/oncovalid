@@ -13,7 +13,7 @@ export default function Usuarios() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({ email: "", full_name: "", role: "user", username: "", password: "" });
+  const [formData, setFormData] = useState({ full_name: "", role: "user", username: "", password: "", confirmPassword: "" });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -35,10 +35,10 @@ export default function Usuarios() {
 
   const handleOpenModal = (user = null) => {
     if (user) {
-      setFormData({ email: user.email, full_name: user.full_name || "", role: user.role || "user", username: user.username || "", password: "" });
+      setFormData({ full_name: user.full_name || "", role: user.role || "user", username: user.username || "", password: "", confirmPassword: "", userId: user.id });
       setIsEditing(true);
     } else {
-      setFormData({ email: "", full_name: "", role: "user", username: "", password: "" });
+      setFormData({ full_name: "", role: "user", username: "", password: "", confirmPassword: "" });
       setIsEditing(false);
     }
     setShowModal(true);
@@ -46,35 +46,33 @@ export default function Usuarios() {
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setFormData({ email: "", full_name: "", role: "user", username: "", password: "" });
+    setFormData({ full_name: "", role: "user", username: "", password: "", confirmPassword: "" });
     setIsEditing(false);
   };
 
   const handleSave = async () => {
+    if (formData.password !== formData.confirmPassword) {
+      alert("Las contraseñas no coinciden");
+      return;
+    }
     setSaving(true);
     try {
       if (isEditing) {
-        // Actualizar usuario
-        const userToUpdate = users.find(u => u.email === formData.email);
-        await base44.entities.User.update(userToUpdate.id, {
+        await base44.entities.User.update(formData.userId, {
           full_name: formData.full_name,
           role: formData.role,
           username: formData.username,
           password: formData.password
         });
-        setUsers(users.map(u => u.email === formData.email ? { ...u, full_name: formData.full_name, role: formData.role, username: formData.username, password: formData.password } : u));
+        setUsers(users.map(u => u.id === formData.userId ? { ...u, full_name: formData.full_name, role: formData.role, username: formData.username } : u));
       } else {
-        // Crear usuario (invitarlo)
-        await base44.users.inviteUser(formData.email, formData.role);
-        // Actualizar el usuario con username y password
-        const newUsers = await base44.entities.User.list("-created_date", 1);
-        if (newUsers.length > 0) {
-          await base44.entities.User.update(newUsers[0].id, {
-            username: formData.username,
-            password: formData.password
-          });
-        }
-        // Recargar la lista
+        // Crear usuario con datos iniciales
+        await base44.entities.User.create({
+          full_name: formData.full_name,
+          role: formData.role,
+          username: formData.username,
+          password: formData.password
+        });
         await loadUsers();
       }
       handleCloseModal();
@@ -192,18 +190,6 @@ export default function Usuarios() {
 
             <div className="space-y-3">
               <div>
-                <Label htmlFor="email" className="text-xs">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={e => setFormData({ ...formData, email: e.target.value })}
-                  disabled={isEditing}
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
                 <Label htmlFor="name" className="text-xs">Nombre</Label>
                 <Input
                   id="name"
@@ -250,14 +236,24 @@ export default function Usuarios() {
                   type="password"
                   value={formData.password}
                   onChange={e => setFormData({ ...formData, password: e.target.value })}
-                  placeholder={isEditing ? "Dejar en blanco para no cambiar" : ""}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="confirmPassword" className="text-xs">Confirmar Contraseña</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })}
                   className="mt-1"
                 />
               </div>
             </div>
 
             <div className="flex gap-2 pt-2">
-              <Button onClick={handleSave} disabled={saving || !formData.email} className="flex-1 gap-2">
+              <Button onClick={handleSave} disabled={saving || !formData.full_name || !formData.username || !formData.password} className="flex-1 gap-2">
                 <Save className="h-4 w-4" />
                 {saving ? "Guardando..." : "Guardar"}
               </Button>
