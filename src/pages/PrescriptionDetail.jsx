@@ -150,27 +150,7 @@ export default function PrescriptionDetail() {
 
 
 
-      {/* Validation actions */}
-      {rx.validation_status === "Pendiente" && (
-        <div className="bg-card rounded-xl border border-border p-6 space-y-4">
-          <h2 className="font-semibold">Validación Farmacéutica</h2>
-          <div>
-            <label className="text-sm font-medium block mb-2">Observaciones del farmacéutico</label>
-            <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Escriba sus observaciones..." rows={3} />
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button onClick={() => handleValidate("Validada")} disabled={updating} className="gap-2 bg-emerald-600 hover:bg-emerald-700">
-              <CheckCircle className="h-4 w-4" /> Validar Prescripción
-            </Button>
-            <Button onClick={() => handleValidate("Ajustada")} disabled={updating} variant="outline" className="gap-2 border-blue-300 text-blue-700 hover:bg-blue-50">
-              <AlertTriangle className="h-4 w-4" /> Validar con Ajuste
-            </Button>
-            <Button onClick={() => handleValidate("Rechazada")} disabled={updating} variant="outline" className="gap-2 border-red-300 text-red-700 hover:bg-red-50">
-              <XCircle className="h-4 w-4" /> Rechazar
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Validation actions - removed from detail view */}
 
       {/* Validated info */}
       {rx.validation_status !== "Pendiente" && rx.validated_by && (
