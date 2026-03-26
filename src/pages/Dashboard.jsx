@@ -34,16 +34,9 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Panel de Validación</h1>
-          <p className="text-muted-foreground text-sm mt-1">Centro de Mezclas Oncológicas</p>
-        </div>
-        <Link to="/nueva-prescripcion">
-          <Button className="gap-2 shadow-sm">
-            <FilePlus className="h-4 w-4" /> Nueva Prescripción
-          </Button>
-        </Link>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Panel de Estados</h1>
+        <p className="text-muted-foreground text-sm mt-1">Centro de Mezclas Oncológicas</p>
       </div>
 
       {/* Stats */}
@@ -67,59 +60,7 @@ export default function Dashboard() {
         })}
       </div>
 
-      {/* Recent prescriptions */}
-      <div className="bg-card rounded-xl border border-border">
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <h2 className="font-semibold">Prescripciones Recientes</h2>
-          <Link to="/prescripciones" className="text-sm text-primary hover:underline flex items-center gap-1">
-            Ver todas <ArrowRight className="h-3 w-3" />
-          </Link>
-        </div>
-        {prescriptions.length === 0 ? (
-          <div className="p-12 text-center">
-            <ClipboardList className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-muted-foreground">No hay prescripciones aún</p>
-            <Link to="/nueva-prescripcion">
-              <Button variant="outline" className="mt-4 gap-2">
-                <FilePlus className="h-4 w-4" /> Crear primera prescripción
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  {["Paciente", "Protocolo", "Ciclo", "Fecha", "Estado", ""].map(h => (
-                    <th key={h} className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {prescriptions.slice(0, 8).map(rx => (
-                  <tr key={rx.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                    <td className="px-6 py-4">
-                      <p className="text-sm font-medium">{rx.patient_name}</p>
-                      <p className="text-xs text-muted-foreground">{rx.patient_nss ? `NSS: ${rx.patient_nss}` : rx.prescribing_doctor}</p>
-                    </td>
-                    <td className="px-6 py-4 text-sm">{rx.protocol_name}</td>
-                    <td className="px-6 py-4 text-sm font-mono">C{rx.cycle_number} D{rx.day_of_cycle}</td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                    {formatDate(rx.prescription_date || rx.created_date)}
-                    </td>
-                    <td className="px-6 py-4"><StatusBadge status={rx.validation_status || "Pendiente"} /></td>
-                    <td className="px-6 py-4">
-                      <Link to={`/prescripcion/${rx.id}`}>
-                        <Button variant="ghost" size="sm" className="gap-1 text-xs">Ver <ArrowRight className="h-3 w-3" /></Button>
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+
     </div>
   );
 }

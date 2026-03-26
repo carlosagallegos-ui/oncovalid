@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FilePlus, ClipboardList, BookOpen, FlaskConical, LogOut, TestTube, Package, Users, Tag, Beaker, ArrowUpFromLine } from "lucide-react";
+import { LayoutDashboard, FilePlus, ClipboardList, BookOpen, FlaskConical, LogOut, TestTube, Package, Users, Tag, Beaker, ArrowUpFromLine, BarChart3 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useState, useEffect } from "react";
 
@@ -11,7 +11,8 @@ const ALL_NAV_ITEMS = [
   { path: "/nueva-prescripcion", label: "Nueva Prescripción", icon: FilePlus, roles: ["admin", "jefe_centro", "medico"] },
   { path: "/mis-prescripciones", label: "Mis Prescripciones", icon: ClipboardList, roles: ["medico"] },
 
-  // Validador
+  // Validación
+  { path: "/validacion-mezclas", label: "Validación de Mezclas", icon: TestTube, roles: ["admin", "jefe_centro", "validador", "encargado_calidad"] },
   { path: "/prescripciones", label: "Validación de Prescripciones", icon: ClipboardList, roles: ["admin", "jefe_centro", "validador", "encargado_calidad"] },
 
   // Coordinador / Encargado de Preparación
@@ -25,6 +26,9 @@ const ALL_NAV_ITEMS = [
   // Mesa de atención / Encargado de calidad
   { path: "/salidas", label: "Salidas de Medicamentos", icon: ArrowUpFromLine, roles: ["admin", "jefe_centro", "mesa_atencion", "encargado_calidad"] },
   { path: "/etiquetas", label: "Etiquetas de Mezclas", icon: Tag, roles: ["admin", "jefe_centro", "mesa_atencion", "encargado_calidad"] },
+
+  // Informes
+  { path: "/informes", label: "Informes", icon: BarChart3, roles: ["admin", "jefe_centro", "validador", "coordinador", "encargado_preparacion", "encargado_calidad"] },
 
   // Compartidos
   { path: "/pacientes", label: "Pacientes", icon: Users, roles: ["admin", "jefe_centro", "validador", "medico", "coordinador", "encargado_preparacion", "encargado_calidad"] },

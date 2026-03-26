@@ -18,6 +18,8 @@ import Etiquetas from './pages/Etiquetas';
 import Preparacion from './pages/Preparacion';
 import Salidas from './pages/Salidas';
 import MisPrescripciones from './pages/MisPrescripciones';
+import ValidacionMezclas from './pages/ValidacionMezclas';
+import Informes from './pages/Informes';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -58,6 +60,8 @@ const AuthenticatedApp = () => {
         <Route path="/salidas" element={<Salidas />} />
         <Route path="/mis-prescripciones" element={<MisPrescripciones />} />
         <Route path="/protocolos" element={<Protocols />} />
+        <Route path="/validacion-mezclas" element={<ValidacionMezclas />} />
+        <Route path="/informes" element={<Informes />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
