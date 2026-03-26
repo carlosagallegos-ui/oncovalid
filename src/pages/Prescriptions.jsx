@@ -16,7 +16,8 @@ export default function Prescriptions() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("Pendiente");
   const [selectedRx, setSelectedRx] = useState(null);
-  const [notes, setNotes] = useState("");
+  const [drugNotes, setDrugNotes] = useState({});
+  const [drugStatus, setDrugStatus] = useState({});
   const [updating, setUpdating] = useState(false);
   const [drugContainers, setDrugContainers] = useState({});
 
@@ -38,29 +39,38 @@ export default function Prescriptions() {
 
   const handleSelectRx = (rx) => {
     setSelectedRx(rx);
-    setNotes(rx.validation_notes || "");
     const containers = {};
+    const notes = {};
+    const status = {};
     (rx.drugs || []).forEach((d, i) => {
       containers[i] = d.container_material || "Bolsa PVC";
+      notes[i] = d.validation_notes || "";
+      status[i] = d.drug_validation_status || "Pendiente";
     });
     setDrugContainers(containers);
+    setDrugNotes(notes);
+    setDrugStatus(status);
   };
 
-  const handleValidate = async (status) => {
+  const handleValidateDrug = async (drugIndex, drugStatus) => {
     setUpdating(true);
     const user = await base44.auth.me();
     
-    // Actualizar cada droga con el recipiente seleccionado
-    const updatedDrugs = (selectedRx.drugs || []).map((d, i) => ({
-      ...d,
-      container_material: drugContainers[i] || d.container_material || "Bolsa PVC"
-    }));
+    const updatedDrugs = (selectedRx.drugs || []).map((d, i) => {
+      if (i === drugIndex) {
+        return {
+          ...d,
+          container_material: drugContainers[i] || d.container_material || "Bolsa PVC",
+          drug_validation_status: drugStatus,
+          drug_validated_by: user.full_name || user.email,
+          drug_validation_date: new Date().toISOString(),
+          drug_validation_notes: drugNotes[i] || ""
+        };
+      }
+      return d;
+    });
 
     const updated = {
-      validation_status: status,
-      validated_by: user.full_name || user.email,
-      validation_date: new Date().toISOString(),
-      validation_notes: notes,
       drugs: updatedDrugs
     };
     
@@ -68,6 +78,7 @@ export default function Prescriptions() {
     
     setPrescriptions(prev => prev.map(p => p.id === selectedRx.id ? { ...p, ...updated } : p));
     setSelectedRx(prev => ({ ...prev, ...updated }));
+    setDrugStatus(prev => ({ ...prev, [drugIndex]: drugStatus }));
     setUpdating(false);
   };
 
@@ -169,107 +180,164 @@ export default function Prescriptions() {
                 </div>
               )}
 
-              {/* Tabla de dosis con selector de recipiente */}
-              <div className="bg-card rounded-xl border border-border overflow-hidden">
-                <div className="px-6 py-4 border-b border-border">
-                  <h2 className="font-semibold text-sm">Medicamentos - Seleccionar Material del Recipiente</h2>
-                </div>
-                <div className="divide-y divide-border">
-                  {selectedRx.drugs?.map((drug, i) => (
-                    <div key={i} className="p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-sm">{drug.drug_name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Dosis: {drug.prescribed_dose} {drug.dose_unit} · Vía: {drug.route} · Infusión: {drug.infusion_time}
-                          </p>
+              {/* Detalles de cada mezcla */}
+              <div className="space-y-4">
+                <h2 className="font-semibold text-sm">Validación de Mezclas por Separado</h2>
+                {selectedRx.drugs?.map((drug, i) => {
+                  const concentrationFinal = drug.prescribed_dose && drug.prescribed_volume
+                    ? (drug.prescribed_dose / drug.prescribed_volume).toFixed(2)
+                    : null;
+                  
+                  return (
+                    <div key={i} className={`rounded-xl border p-4 space-y-4 ${
+                      drugStatus[i] === "Validada" ? "border-emerald-300 bg-emerald-50/30" :
+                      drugStatus[i] === "Rechazada" ? "border-red-300 bg-red-50/30" :
+                      drugStatus[i] === "Ajustada" ? "border-blue-300 bg-blue-50/30" :
+                      "border-border bg-card"
+                    }`}>
+                      {/* Encabezado mezcla */}
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-sm">{drug.drug_name}</p>
+                            <span className="text-xs bg-muted px-2 py-0.5 rounded-full">{drug.route}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Mezcla {i + 1} de {selectedRx.drugs.length}</p>
                         </div>
-                        {drug.is_valid ? (
-                          <CheckCircle className="h-4 w-4 text-emerald-500" />
-                        ) : (
-                          <AlertTriangle className="h-4 w-4 text-amber-500" />
-                        )}
+                        <div className="text-right">
+                          {drug.is_valid ? (
+                            <CheckCircle className="h-5 w-5 text-emerald-500" />
+                          ) : (
+                            <AlertTriangle className="h-5 w-5 text-amber-500" />
+                          )}
+                        </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs">Tipo de Solución</Label>
-                          <p className="text-xs text-muted-foreground bg-muted rounded px-2 py-1">
-                            {drug.solution_type || drug.diluent || "SSN 0.9%"}
-                          </p>
+                      {/* Detalles técnicos */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-muted/50 rounded text-xs">
+                        <div>
+                          <p className="text-muted-foreground mb-0.5">Dosis Prescrita</p>
+                          <p className="font-mono font-medium">{drug.prescribed_dose} {drug.dose_unit}</p>
                         </div>
-                        <div className="space-y-1">
-                          <Label htmlFor={`container-${i}`} className="text-xs">Material del Recipiente *</Label>
-                          <Select
-                            value={drugContainers[i] || "Bolsa PVC"}
-                            onValueChange={v => setDrugContainers(prev => ({ ...prev, [i]: v }))}
-                          >
-                            <SelectTrigger id={`container-${i}`} className="h-8 text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Bolsa PVC">Bolsa PVC</SelectItem>
-                              <SelectItem value="Bolsa no PVC (EVA)">Bolsa no PVC (EVA)</SelectItem>
-                              <SelectItem value="Bolsa polipropileno">Bolsa polipropileno</SelectItem>
-                              <SelectItem value="Jeringa">Jeringa</SelectItem>
-                              <SelectItem value="Frasco vidrio">Frasco vidrio</SelectItem>
-                            </SelectContent>
-                          </Select>
+                        <div>
+                          <p className="text-muted-foreground mb-0.5">Volumen Total</p>
+                          <p className="font-mono font-medium">{drug.prescribed_volume || drug.volume_ml || "—"} mL</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground mb-0.5">Concentración Final</p>
+                          <p className="font-mono font-medium">{concentrationFinal ? `${concentrationFinal} ${drug.dose_unit}/mL` : "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground mb-0.5">Tipo de Solución</p>
+                          <p className="font-medium">{drug.solution_type || drug.diluent || "SSN 0.9%"}</p>
                         </div>
                       </div>
+
+                      {/* Material del recipiente */}
+                      <div className="space-y-2">
+                        <Label htmlFor={`container-${i}`} className="text-xs">Material del Recipiente *</Label>
+                        <Select
+                          value={drugContainers[i] || "Bolsa PVC"}
+                          onValueChange={v => setDrugContainers(prev => ({ ...prev, [i]: v }))}
+                        >
+                          <SelectTrigger id={`container-${i}`} className="h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Bolsa PVC">Bolsa PVC</SelectItem>
+                            <SelectItem value="Bolsa no PVC (EVA)">Bolsa no PVC (EVA)</SelectItem>
+                            <SelectItem value="Bolsa polipropileno">Bolsa polipropileno</SelectItem>
+                            <SelectItem value="Jeringa">Jeringa</SelectItem>
+                            <SelectItem value="Frasco vidrio">Frasco vidrio</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Notas por mezcla */}
+                      <div className="space-y-2">
+                        <Label htmlFor={`notes-${i}`} className="text-xs">Observaciones (Opcional)</Label>
+                        <Textarea
+                          id={`notes-${i}`}
+                          value={drugNotes[i] || ""}
+                          onChange={e => setDrugNotes(prev => ({ ...prev, [i]: e.target.value }))}
+                          placeholder="Notas sobre esta mezcla..."
+                          rows={2}
+                          className="text-xs"
+                        />
+                      </div>
+
+                      {/* Botones de validación por mezcla */}
+                      {drugStatus[i] === "Pendiente" ? (
+                        <div className="flex gap-2 flex-wrap">
+                          <Button
+                            size="sm"
+                            onClick={() => handleValidateDrug(i, "Validada")}
+                            disabled={updating}
+                            className="gap-1 bg-emerald-600 hover:bg-emerald-700 text-xs h-8"
+                          >
+                            <CheckCircle className="h-3 w-3" /> Validar Mezcla
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleValidateDrug(i, "Ajustada")}
+                            disabled={updating}
+                            variant="outline"
+                            className="gap-1 border-blue-300 text-blue-700 hover:bg-blue-50 text-xs h-8"
+                          >
+                            <AlertTriangle className="h-3 w-3" /> Con Ajuste
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleValidateDrug(i, "Rechazada")}
+                            disabled={updating}
+                            variant="outline"
+                            className="gap-1 border-red-300 text-red-700 hover:bg-red-50 text-xs h-8"
+                          >
+                            <XCircle className="h-3 w-3" /> Rechazar
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs">
+                          <div>
+                            <span className="text-muted-foreground">Estado: </span>
+                            <span className="font-medium">{
+                              drugStatus[i] === "Validada" ? "✅ Validada" :
+                              drugStatus[i] === "Rechazada" ? "❌ Rechazada" :
+                              drugStatus[i] === "Ajustada" ? "⚠️ Con Ajuste" : "⏳ Pendiente"
+                            }</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setDrugStatus(prev => ({ ...prev, [i]: "Pendiente" }))}
+                            className="h-6 text-xs"
+                          >
+                            Cambiar
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
 
-              {/* Validación */}
-              {selectedRx.validation_status === "Pendiente" ? (
-                <div className="bg-card rounded-xl border border-border p-6 space-y-4">
-                  <h2 className="font-semibold">Validación Farmacéutica</h2>
-                  <div>
-                    <label className="text-sm font-medium block mb-2">Observaciones</label>
-                    <Textarea
-                      value={notes}
-                      onChange={e => setNotes(e.target.value)}
-                      placeholder="Escriba sus observaciones..."
-                      rows={3}
-                    />
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Button
-                      onClick={() => handleValidate("Validada")}
-                      disabled={updating}
-                      className="gap-2 bg-emerald-600 hover:bg-emerald-700"
-                    >
-                      <CheckCircle className="h-4 w-4" /> Validar
-                    </Button>
-                    <Button
-                      onClick={() => handleValidate("Ajustada")}
-                      disabled={updating}
-                      variant="outline"
-                      className="gap-2 border-blue-300 text-blue-700 hover:bg-blue-50"
-                    >
-                      <AlertTriangle className="h-4 w-4" /> Validar con Ajuste
-                    </Button>
-                    <Button
-                      onClick={() => handleValidate("Rechazada")}
-                      disabled={updating}
-                      variant="outline"
-                      className="gap-2 border-red-300 text-red-700 hover:bg-red-50"
-                    >
-                      <XCircle className="h-4 w-4" /> Rechazar
-                    </Button>
-                  </div>
+              {/* Resumen de validación */}
+              <div className="bg-muted/50 rounded-xl p-4">
+                <h3 className="text-sm font-semibold mb-2">Resumen de Validación</h3>
+                <div className="text-sm space-y-1">
+                  <p><span className="text-muted-foreground">Total de mezclas: </span><span className="font-medium">{selectedRx.drugs?.length || 0}</span></p>
+                  <p><span className="text-muted-foreground">Validadas: </span>
+                    <span className="font-medium text-emerald-600">
+                      {Object.values(drugStatus).filter(s => s === "Validada").length}
+                    </span>
+                  </p>
+                  <p><span className="text-muted-foreground">Pendientes: </span>
+                    <span className="font-medium text-amber-600">
+                      {Object.values(drugStatus).filter(s => s === "Pendiente").length}
+                    </span>
+                  </p>
                 </div>
-              ) : (
-                <div className="bg-muted/50 rounded-xl p-4 text-sm space-y-1">
-                  <p><span className="text-muted-foreground">Validado por: </span><span className="font-medium">{selectedRx.validated_by}</span></p>
-                  <p><span className="text-muted-foreground">Fecha: </span>{formatDateTime(selectedRx.validation_date)}</p>
-                  {selectedRx.validation_notes && (
-                    <p><span className="text-muted-foreground">Notas: </span>{selectedRx.validation_notes}</p>
-                  )}
-                </div>
-              )}
+              </div>
             </div>
           ) : (
             <div className="bg-card rounded-xl border border-border p-12 text-center text-muted-foreground">
