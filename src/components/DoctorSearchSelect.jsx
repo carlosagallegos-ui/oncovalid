@@ -10,7 +10,7 @@ export default function DoctorSearchSelect({ onSelect, selectedDoctor }) {
   const [doctors, setDoctors] = useState([]);
   const [search, setSearch] = useState("");
   const [showNew, setShowNew] = useState(false);
-  const [newDoctor, setNewDoctor] = useState({ full_name: "", license: "", specialty: "", institution: "" });
+  const [newDoctor, setNewDoctor] = useState({ full_name: "", license: "", specialty: "", institution: "", matricula: "" });
 
   useEffect(() => {
     base44.entities.Doctor.list("-created_date", 200).then(setDoctors);
@@ -27,7 +27,7 @@ export default function DoctorSearchSelect({ onSelect, selectedDoctor }) {
     setDoctors(prev => [created, ...prev]);
     onSelect(created);
     setShowNew(false);
-    setNewDoctor({ full_name: "", license: "", specialty: "", institution: "" });
+    setNewDoctor({ full_name: "", license: "", specialty: "", institution: "", matricula: "" });
   };
 
   return (
@@ -91,13 +91,17 @@ export default function DoctorSearchSelect({ onSelect, selectedDoctor }) {
               </DialogHeader>
               <div className="grid grid-cols-2 gap-3 mt-4">
                 <div className="col-span-2">
-                  <Label>Nombre completo *</Label>
-                  <Input value={newDoctor.full_name} onChange={e => setNewDoctor(p => ({ ...p, full_name: e.target.value.toUpperCase() }))} placeholder="DR. ..." />
-                </div>
-                <div>
-                  <Label>Cédula profesional *</Label>
-                  <Input value={newDoctor.license} onChange={e => setNewDoctor(p => ({ ...p, license: e.target.value.toUpperCase() }))} />
-                </div>
+                    <Label>Nombre completo *</Label>
+                    <Input value={newDoctor.full_name} onChange={e => setNewDoctor(p => ({ ...p, full_name: e.target.value.toUpperCase() }))} placeholder="DR. ..." />
+                  </div>
+                  <div>
+                    <Label>Cédula profesional *</Label>
+                    <Input value={newDoctor.license} onChange={e => setNewDoctor(p => ({ ...p, license: e.target.value.toUpperCase() }))} />
+                  </div>
+                  <div>
+                    <Label>Matrícula médica *</Label>
+                    <Input value={newDoctor.matricula} onChange={e => setNewDoctor(p => ({ ...p, matricula: e.target.value.toUpperCase() }))} placeholder="Ej: MAT123456" />
+                  </div>
                 <div>
                   <Label>Especialidad</Label>
                   <Input value={newDoctor.specialty} onChange={e => setNewDoctor(p => ({ ...p, specialty: e.target.value.toUpperCase() }))} placeholder="Oncología..." />
@@ -109,9 +113,9 @@ export default function DoctorSearchSelect({ onSelect, selectedDoctor }) {
               </div>
               <div className="flex justify-end gap-2 mt-4">
                 <Button variant="outline" onClick={() => setShowNew(false)}>Cancelar</Button>
-                <Button onClick={handleCreate} disabled={!newDoctor.full_name || !newDoctor.license}>
-                  Registrar
-                </Button>
+                <Button onClick={handleCreate} disabled={!newDoctor.full_name || !newDoctor.license || !newDoctor.matricula}>
+                    Registrar
+                  </Button>
               </div>
             </DialogContent>
           </Dialog>

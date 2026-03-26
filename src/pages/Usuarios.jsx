@@ -237,11 +237,12 @@ export default function Usuarios() {
               </div>
 
               <div>
-                <Label htmlFor="username" className="text-xs">Nombre de Usuario</Label>
+                <Label htmlFor="username" className="text-xs">Nombre de Usuario (Matrícula del Médico)</Label>
                 <Input
                   id="username"
                   value={formData.username}
                   onChange={e => setFormData({ ...formData, username: e.target.value })}
+                  placeholder="Matrícula médica"
                   className="mt-1"
                 />
               </div>

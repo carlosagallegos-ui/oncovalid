@@ -1,0 +1,41 @@
+{
+  "name": "Doctor",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "Nombre completo del m\u00e9dico"
+    },
+    "license": {
+      "type": "string",
+      "description": "C\u00e9dula profesional"
+    },
+    "matricula": {
+      "type": "string",
+      "description": "Matr\u00edcula m\u00e9dica"
+    },
+    "specialty": {
+      "type": "string",
+      "description": "Especialidad"
+    },
+    "institution": {
+      "type": "string",
+      "description": "Instituci\u00f3n / Hospital"
+    }
+  },
+  "required": [
+    "full_name",
+    "license",
+    "matricula"
+  ],
+  "rls": {
+    "create": {},
+    "read": {},
+    "update": {},
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
