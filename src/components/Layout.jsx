@@ -13,7 +13,6 @@ const ALL_NAV_ITEMS = [
 
   // Validación
   { path: "/validacion-mezclas", label: "Validación de Mezclas", icon: TestTube, roles: ["admin", "jefe_centro", "validador", "encargado_calidad"] },
-  { path: "/prescripciones", label: "Validación de Prescripciones", icon: ClipboardList, roles: ["admin", "jefe_centro", "validador", "encargado_calidad"] },
 
   // Coordinador / Encargado de Preparación
   { path: "/frascos", label: "Frascos por Mezcla", icon: TestTube, roles: ["admin", "jefe_centro", "coordinador", "encargado_preparacion"] },
