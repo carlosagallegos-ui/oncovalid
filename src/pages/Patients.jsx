@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, User, Pencil } from "lucide-react";
+import { Search, User, Pencil, LogOut } from "lucide-react";
 import { calculateBSA } from "@/lib/chemoProtocols";
 
 export default function Patients() {
@@ -15,6 +15,9 @@ export default function Patients() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
+  const [discharging, setDischarging] = useState(null); // patient being discharged
+  const [dischargeForm, setDischargeForm] = useState({ status: "Fallecido", discharge_date: new Date().toISOString().split("T")[0], discharge_notes: "" });
+  const [dischargeSaving, setDischargeSaving] = useState(false);
 
   useEffect(() => {
     base44.entities.Patient.list("-created_date", 300).then(data => {
@@ -67,6 +70,23 @@ export default function Patients() {
   };
 
   const set = (field, value) => setForm(p => ({ ...p, [field]: value }));
+
+  const openDischarge = (patient) => {
+    setDischargeForm({ status: "Fallecido", discharge_date: new Date().toISOString().split("T")[0], discharge_notes: "" });
+    setDischarging(patient);
+  };
+
+  const handleDischarge = async () => {
+    setDischargeSaving(true);
+    const updated = await base44.entities.Patient.update(discharging.id, {
+      status: dischargeForm.status,
+      discharge_date: dischargeForm.discharge_date,
+      discharge_notes: dischargeForm.discharge_notes,
+    });
+    setPatients(prev => prev.map(p => p.id === discharging.id ? { ...p, ...updated } : p));
+    setDischargeSaving(false);
+    setDischarging(null);
+  };
 
   const bsaPreview = form.weight_kg && form.height_cm
     ? calculateBSA(parseFloat(form.weight_kg), parseFloat(form.height_cm)).toFixed(4)
@@ -123,17 +143,27 @@ export default function Patients() {
                     <td className="px-4 py-3 text-sm max-w-48 truncate">{p.diagnosis}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
-                        p.status === "Activo" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-100 text-gray-500 border-gray-200"
+                         p.status === "Activo" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : p.status === "Fallecido" ? "bg-red-50 text-red-700 border-red-200"
+                        : p.status === "Tratamiento completado" ? "bg-blue-50 text-blue-700 border-blue-200"
+                        : "bg-gray-100 text-gray-500 border-gray-200"
                       }`}>
                         {p.status || "Activo"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <Button variant="ghost" size="sm" className="gap-1" onClick={() => openEdit(p)}>
-                        <Pencil className="h-3.5 w-3.5" /> Editar
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="sm" className="gap-1" onClick={() => openEdit(p)}>
+                          <Pencil className="h-3.5 w-3.5" /> Editar
+                        </Button>
+                        {p.status === "Activo" && (
+                          <Button variant="ghost" size="sm" className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => openDischarge(p)}>
+                            <LogOut className="h-3.5 w-3.5" /> Alta
+                          </Button>
+                        )}
+                      </div>
                     </td>
-                  </tr>
+                    </tr>
                 ))}
               </tbody>
             </table>
@@ -198,6 +228,8 @@ export default function Patients() {
                 <SelectContent>
                   <SelectItem value="Activo">Activo</SelectItem>
                   <SelectItem value="Inactivo">Inactivo</SelectItem>
+                  <SelectItem value="Fallecido">Fallecido</SelectItem>
+                  <SelectItem value="Tratamiento completado">Tratamiento completado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -210,6 +242,47 @@ export default function Patients() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+
+       {/* Discharge Dialog */}
+       <Dialog open={!!discharging} onOpenChange={open => !open && setDischarging(null)}>
+         <DialogContent className="max-w-md">
+           <DialogHeader>
+             <DialogTitle>Dar de alta al paciente</DialogTitle>
+             <p className="text-sm text-muted-foreground">{discharging?.full_name}</p>
+           </DialogHeader>
+           <div className="space-y-4 mt-2">
+             <div>
+               <Label>Motivo del alta *</Label>
+               <Select value={dischargeForm.status} onValueChange={v => setDischargeForm(f => ({ ...f, status: v }))}>
+                 <SelectTrigger><SelectValue /></SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="Fallecido">Fallecimiento</SelectItem>
+                   <SelectItem value="Tratamiento completado">Término de tratamiento</SelectItem>
+                   <SelectItem value="Inactivo">Otro motivo</SelectItem>
+                 </SelectContent>
+               </Select>
+             </div>
+             <div>
+               <Label>Fecha del alta</Label>
+               <Input type="date" value={dischargeForm.discharge_date} onChange={e => setDischargeForm(f => ({ ...f, discharge_date: e.target.value }))} />
+             </div>
+             <div>
+               <Label>Notas adicionales</Label>
+               <Input value={dischargeForm.discharge_notes} onChange={e => setDischargeForm(f => ({ ...f, discharge_notes: e.target.value.toUpperCase() }))} placeholder="Observaciones opcionales..." />
+             </div>
+           </div>
+           <div className="flex justify-end gap-2 mt-4">
+             <Button variant="outline" onClick={() => setDischarging(null)}>Cancelar</Button>
+             <Button
+               onClick={handleDischarge}
+               disabled={dischargeSaving}
+               className={dischargeForm.status === "Fallecido" ? "bg-red-600 hover:bg-red-700" : ""}
+             >
+               {dischargeSaving ? "Guardando..." : "Confirmar alta"}
+             </Button>
+           </div>
+         </DialogContent>
+       </Dialog>
+      </div>
+      );
 }
