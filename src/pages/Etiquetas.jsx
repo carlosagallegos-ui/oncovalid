@@ -79,57 +79,76 @@ export default function Etiquetas() {
         body { font-family: Arial, sans-serif; background: #fff; }
         .page { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; }
         .label {
-          width: 9cm; min-height: 6cm;
+          width: 10cm; height: 5cm;
           border: 1.5px solid #333; border-radius: 6px;
-          padding: 10px 12px;
+          padding: 8px 10px;
           page-break-inside: avoid;
-          display: flex; flex-direction: column; gap: 3px;
+          display: flex; flex-direction: row; gap: 0;
+          overflow: hidden;
         }
-        .folio { font-size: 10px; color: #555; text-align: right; font-family: monospace; }
-        .drug { font-size: 16px; font-weight: bold; color: #000; margin: 3px 0 1px; }
-        .dose { font-size: 14px; font-weight: bold; color: #0369a1; }
-        .row { font-size: 11px; color: #333; margin-top: 2px; }
+        .folio { font-size: 9px; color: #555; font-family: monospace; }
+        .drug { font-size: 13px; font-weight: bold; color: #000; margin: 2px 0 1px; }
+        .dose { font-size: 12px; font-weight: bold; color: #0369a1; }
+        .row { font-size: 10px; color: #333; margin-top: 1px; }
         .row b { font-weight: bold; }
-        .divider { border: none; border-top: 1px solid #ddd; margin: 5px 0; }
-        .patient { font-size: 12px; font-weight: bold; }
-        .sub { font-size: 10px; color: #555; }
-        .stability-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; padding: 5px 7px; margin-top: 5px; }
-        .stability-box .s-title { font-size: 9px; font-weight: bold; color: #166534; text-transform: uppercase; letter-spacing: .04em; }
-        .stability-box .s-val { font-size: 11px; color: #15803d; margin-top: 1px; }
-        .storage-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 4px; padding: 5px 7px; margin-top: 4px; }
-        .storage-box .s-title { font-size: 9px; font-weight: bold; color: #1e40af; text-transform: uppercase; letter-spacing: .04em; }
-        .storage-box .s-val { font-size: 11px; color: #1d4ed8; margin-top: 1px; }
+        .vdivider { border: none; border-left: 1px solid #ddd; margin: 0 8px; }
+        .patient { font-size: 11px; font-weight: bold; }
+        .sub { font-size: 9px; color: #555; margin-top: 1px; }
+        .col-left { flex: 1.1; display: flex; flex-direction: column; justify-content: space-between; }
+        .col-right { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .stability-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 3px; padding: 3px 5px; margin-top: 3px; }
+        .stability-box .s-title { font-size: 8px; font-weight: bold; color: #166534; text-transform: uppercase; }
+        .stability-box .s-val { font-size: 9px; color: #15803d; }
+        .storage-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 3px; padding: 3px 5px; margin-top: 3px; }
+        .storage-box .s-title { font-size: 8px; font-weight: bold; color: #1e40af; text-transform: uppercase; }
+        .storage-box .s-val { font-size: 9px; color: #1d4ed8; }
         @media print { body { margin: 0; } }
       </style></head><body>
       <div class="page">
         ${labels.map(({ rx, drug, folio, stability, medInfo }) => `
           <div class="label">
-            <div class="folio">Folio: ${folio}</div>
-            <div class="drug">${drug.drug_name}</div>
-            <div class="dose">${drug.prescribed_dose ?? drug.calculated_dose ?? "—"} ${drug.dose_unit || "mg"}</div>
-            <div class="row">Vía: <b>${drug.route || "—"}</b> &nbsp;·&nbsp; Inf: <b>${drug.infusion_time || "—"}</b></div>
-            <div class="row">Solución: <b>${drug.solution_type || drug.diluent || "—"}</b>${(drug.prescribed_volume || drug.volume_ml) ? ` <b>${drug.prescribed_volume || drug.volume_ml} mL</b>` : ""}</div>
-            <div class="row">Recipiente: <b>${drug.container_material || "—"}</b></div>
-            ${stability ? `
-              <div class="stability-box">
-                <div class="s-title">⏱ Vida útil de la mezcla</div>
-                <div class="s-val">${stability.stability}</div>
+            <div class="col-left">
+              <div>
+                <div class="folio">Folio: ${folio}</div>
+                <div class="drug">${drug.drug_name}</div>
+                <div class="dose">${drug.prescribed_dose ?? drug.calculated_dose ?? "—"} ${drug.dose_unit || "mg"}</div>
+                <div class="row">Vía: <b>${drug.route || "—"}</b></div>
+                <div class="row">Inf: <b>${drug.infusion_time || "—"}</b></div>
+                <div class="row">Solución: <b>${drug.solution_type || drug.diluent || "—"}</b>${(drug.prescribed_volume || drug.volume_ml) ? ` <b>${drug.prescribed_volume || drug.volume_ml} mL</b>` : ""}</div>
+                <div class="row">Recipiente: <b>${drug.container_material || "—"}</b></div>
               </div>
-              <div class="storage-box">
-                <div class="s-title">🌡 Condiciones de almacenamiento</div>
-                <div class="s-val">${medInfo?.storage_conditions ? medInfo.storage_conditions + " / " : ""}${stability.storage}</div>
+              <div>
+                ${stability ? `
+                  <div class="stability-box">
+                    <div class="s-title">⏱ Vida útil</div>
+                    <div class="s-val">${stability.stability}</div>
+                  </div>
+                  <div class="storage-box">
+                    <div class="s-title">🌡 Almacenamiento</div>
+                    <div class="s-val">${medInfo?.storage_conditions ? medInfo.storage_conditions + " / " : ""}${stability.storage}</div>
+                  </div>
+                ` : (medInfo?.storage_conditions ? `
+                  <div class="storage-box">
+                    <div class="s-title">🌡 Almacenamiento</div>
+                    <div class="s-val">${medInfo.storage_conditions}</div>
+                  </div>
+                ` : "")}
               </div>
-            ` : (medInfo?.storage_conditions ? `
-              <div class="storage-box">
-                <div class="s-title">🌡 Condiciones de almacenamiento</div>
-                <div class="s-val">${medInfo.storage_conditions}</div>
+            </div>
+            <div class="vdivider"></div>
+            <div class="col-right">
+              <div>
+                <div class="patient">${rx.patient_name}</div>
+                <div class="sub">NSS: ${rx.patient_nss || "—"}</div>
+                <div class="sub">SCT: ${rx.patient_bsa?.toFixed(2) || "—"} m² &nbsp;·&nbsp; Peso: ${rx.patient_weight || "—"} kg</div>
               </div>
-            ` : "")}
-            <hr class="divider"/>
-            <div class="patient">${rx.patient_name}</div>
-            <div class="sub">NSS: ${rx.patient_nss || "—"} &nbsp;·&nbsp; SCT: ${rx.patient_bsa?.toFixed(2) || "—"} m² &nbsp;·&nbsp; Peso: ${rx.patient_weight || "—"} kg</div>
-            <div class="sub">${rx.protocol_name} &nbsp;·&nbsp; C${rx.cycle_number} D${rx.day_of_cycle}</div>
-            <div class="sub">Médico: ${rx.prescribing_doctor} &nbsp;·&nbsp; Fecha: ${formatDate(rx.prescription_date || rx.created_date)}</div>
+              <div>
+                <div class="sub">${rx.protocol_name}</div>
+                <div class="sub">C${rx.cycle_number} D${rx.day_of_cycle}</div>
+                <div class="sub">Médico: ${rx.prescribing_doctor}</div>
+                <div class="sub">Fecha: ${formatDate(rx.prescription_date || rx.created_date)}</div>
+              </div>
+            </div>
           </div>
         `).join("")}
       </div>
@@ -173,74 +192,77 @@ export default function Etiquetas() {
           No se encontraron mezclas
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex flex-wrap gap-4">
           {filtered.map(({ rx, drug, folio, stability, medInfo }, i) => (
-            <div key={i} className="bg-white border-2 border-border rounded-xl p-4 space-y-2 hover:border-primary/40 transition-colors">
-              {/* Header */}
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Tag className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
-                  <span className="font-bold text-sm">{drug.drug_name}</span>
-                </div>
-                <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded shrink-0">{folio}</span>
-              </div>
-
-              <p className="font-bold text-primary text-lg">
-                {drug.prescribed_dose ?? drug.calculated_dose ?? "—"} {drug.dose_unit || "mg"}
-              </p>
-
-              <div className="text-xs text-muted-foreground space-y-0.5">
-                <p>{drug.route} · {drug.infusion_time}</p>
-                <p>{drug.solution_type || drug.diluent || "—"}{(drug.prescribed_volume || drug.volume_ml) ? ` · ${drug.prescribed_volume || drug.volume_ml} mL` : ""}</p>
-                <p>{drug.container_material || "—"}</p>
-              </div>
-
-              {/* Stability & Storage */}
-              {stability && (
-                <div className="space-y-1.5">
-                  <div className="flex items-start gap-1.5 bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-1.5">
-                    <Clock className="h-3 w-3 text-emerald-600 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-[9px] font-bold text-emerald-700 uppercase tracking-wide">Vida útil de la mezcla</p>
-                      <p className="text-xs text-emerald-800">{stability.stability}</p>
+            <div key={i} className="bg-white border-2 border-border rounded-xl hover:border-primary/40 transition-colors flex flex-col" style={{width:'10cm', minHeight:'5cm'}}>
+              {/* Label body: horizontal layout */}
+              <div className="flex flex-1 gap-0 p-3">
+                {/* Left col: drug info + stability */}
+                <div className="flex flex-col justify-between" style={{flex:'1.1'}}>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1">
+                      <Tag className="h-3 w-3 text-primary shrink-0" />
+                      <span className="font-bold text-xs">{drug.drug_name}</span>
                     </div>
+                    <p className="font-bold text-primary">{drug.prescribed_dose ?? drug.calculated_dose ?? "—"} {drug.dose_unit || "mg"}</p>
+                    <p className="text-[10px] text-muted-foreground">{drug.route} · {drug.infusion_time}</p>
+                    <p className="text-[10px] text-muted-foreground">{drug.solution_type || drug.diluent || "—"}{(drug.prescribed_volume || drug.volume_ml) ? ` · ${drug.prescribed_volume || drug.volume_ml} mL` : ""}</p>
+                    <p className="text-[10px] text-muted-foreground">{drug.container_material || "—"}</p>
+                    <p className="text-[9px] font-mono text-muted-foreground">Folio: {folio}</p>
                   </div>
-                  <div className="flex items-start gap-1.5 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1.5">
-                    <Thermometer className="h-3 w-3 text-blue-600 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-[9px] font-bold text-blue-700 uppercase tracking-wide">Almacenamiento</p>
-                      <p className="text-xs text-blue-800">
-                        {medInfo?.storage_conditions ? `${medInfo.storage_conditions} · ` : ""}{stability.storage}
-                      </p>
-                    </div>
+                  <div className="space-y-1 mt-1">
+                    {stability && (
+                      <>
+                        <div className="flex items-start gap-1 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-1">
+                          <Clock className="h-2.5 w-2.5 text-emerald-600 shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-[8px] font-bold text-emerald-700 uppercase">Vida útil</p>
+                            <p className="text-[9px] text-emerald-800">{stability.stability}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-1 bg-blue-50 border border-blue-200 rounded px-1.5 py-1">
+                          <Thermometer className="h-2.5 w-2.5 text-blue-600 shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-[8px] font-bold text-blue-700 uppercase">Almacenamiento</p>
+                            <p className="text-[9px] text-blue-800">{medInfo?.storage_conditions ? `${medInfo.storage_conditions} · ` : ""}{stability.storage}</p>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {!stability && medInfo?.storage_conditions && (
+                      <div className="flex items-start gap-1 bg-blue-50 border border-blue-200 rounded px-1.5 py-1">
+                        <Thermometer className="h-2.5 w-2.5 text-blue-600 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-[8px] font-bold text-blue-700 uppercase">Almacenamiento</p>
+                          <p className="text-[9px] text-blue-800">{medInfo.storage_conditions}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
-              {!stability && medInfo?.storage_conditions && (
-                <div className="flex items-start gap-1.5 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1.5">
-                  <Thermometer className="h-3 w-3 text-blue-600 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-[9px] font-bold text-blue-700 uppercase tracking-wide">Almacenamiento</p>
-                    <p className="text-xs text-blue-800">{medInfo.storage_conditions}</p>
+                {/* Divider */}
+                <div className="border-l border-border mx-2" />
+                {/* Right col: patient info */}
+                <div className="flex flex-col justify-between" style={{flex:'1'}}>
+                  <div className="space-y-0.5">
+                    <p className="font-semibold text-xs">{rx.patient_name}</p>
+                    <p className="text-[9px] text-muted-foreground">NSS: {rx.patient_nss || "—"}</p>
+                    <p className="text-[9px] text-muted-foreground">SCT: {rx.patient_bsa?.toFixed(2) || "—"} m² · Peso: {rx.patient_weight || "—"} kg</p>
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-[9px] text-muted-foreground">{rx.protocol_name}</p>
+                    <p className="text-[9px] text-muted-foreground">C{rx.cycle_number} D{rx.day_of_cycle}</p>
+                    <p className="text-[9px] text-muted-foreground">Dr. {rx.prescribing_doctor}</p>
+                    <p className="text-[9px] text-muted-foreground">{formatDate(rx.prescription_date || rx.created_date)}</p>
                   </div>
                 </div>
-              )}
-
-              {/* Patient */}
-              <div className="border-t border-border pt-2 space-y-0.5">
-                <p className="font-semibold text-sm">{rx.patient_name}</p>
-                <p className="text-xs text-muted-foreground">{rx.protocol_name} · C{rx.cycle_number}D{rx.day_of_cycle}</p>
-                <p className="text-xs text-muted-foreground">{formatDate(rx.prescription_date || rx.created_date)}</p>
               </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full gap-1.5 mt-1"
-                onClick={() => printLabels([{ rx, drug, folio, stability, medInfo }])}
-              >
-                <Printer className="h-3 w-3" /> Imprimir esta etiqueta
-              </Button>
+              {/* Print button */}
+              <div className="border-t border-border px-3 py-1.5">
+                <Button variant="outline" size="sm" className="w-full gap-1.5 h-7 text-xs" onClick={() => printLabels([{ rx, drug, folio, stability, medInfo }])}>
+                  <Printer className="h-3 w-3" /> Imprimir esta etiqueta
+                </Button>
+              </div>
             </div>
           ))}
         </div>
