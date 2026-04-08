@@ -21,7 +21,7 @@ const ALL_NAV_ITEMS = [
   { path: "/medicamentos", label: "Medicamentos", icon: Package, roles: ["admin", "jefe_centro", "coordinador", "encargado_preparacion"] },
 
   // Mesa de atención / Encargado de calidad
-  { path: "/salidas", label: "Salidas de Medicamentos", icon: ArrowUpFromLine, roles: ["admin", "jefe_centro", "mesa_atencion", "encargado_calidad"] },
+  { path: "/salidas", label: "Salidas de Mezclas", icon: ArrowUpFromLine, roles: ["admin", "jefe_centro", "mesa_atencion", "encargado_calidad"] },
   { path: "/etiquetas", label: "Etiquetas de Mezclas", icon: Tag, roles: ["admin", "jefe_centro", "mesa_atencion", "encargado_calidad"] },
 
   // Enfermero - Aplicación de mezclas
