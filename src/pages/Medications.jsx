@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Search, Plus, FlaskConical, AlertTriangle, Package, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Search, Plus, FlaskConical, AlertTriangle, Package, CheckCircle, XCircle, Clock, Trash2 } from "lucide-react";
 import moment from "moment";
 
 // Extraer lista única de medicamentos de los protocolos
@@ -82,6 +82,7 @@ export default function Medications() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   useEffect(() => {
     base44.entities.Medication.list("-received_date", 300).then(data => {
@@ -121,6 +122,12 @@ export default function Medications() {
   };
 
   const set = (field, value) => setForm(p => ({ ...p, [field]: value }));
+
+  const handleDelete = async (id) => {
+    await base44.entities.Medication.delete(id);
+    setMedications(prev => prev.filter(m => m.id !== id));
+    setConfirmDelete(null);
+  };
 
   const stats = {
     total: medications.length,
@@ -222,13 +229,36 @@ export default function Medications() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <Button variant="ghost" size="sm" onClick={() => openEdit(med)}>Editar</Button>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => openEdit(med)}>Editar</Button>
+                          <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(med)} className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Delete Dialog */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-card rounded-xl border border-border p-6 w-full max-w-sm space-y-4">
+            <h3 className="font-semibold">¿Dar de baja medicamento?</h3>
+            <p className="text-sm text-muted-foreground">
+              Se eliminará <span className="font-medium text-foreground">{confirmDelete.drug_name}</span> (Lote: {confirmDelete.lot_number || "—"}) del inventario. Esta acción no se puede deshacer.
+            </p>
+            <div className="flex gap-2">
+              <Button onClick={() => handleDelete(confirmDelete.id)} className="flex-1 bg-red-600 hover:bg-red-700 gap-2">
+                <Trash2 className="h-4 w-4" /> Dar de baja
+              </Button>
+              <Button variant="outline" onClick={() => setConfirmDelete(null)} className="flex-1">Cancelar</Button>
+            </div>
           </div>
         </div>
       )}
