@@ -20,6 +20,7 @@ export default function ValidacionMezclas() {
   const [updating, setUpdating] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [currentRx, setCurrentRx] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("todos");
 
   useEffect(() => {
     loadPrescriptions();
@@ -52,12 +53,15 @@ export default function ValidacionMezclas() {
     }))
   );
 
-  const filtered = allMixes.filter(mix =>
-    !search ||
-    mix.patient_name?.toLowerCase().includes(search.toLowerCase()) ||
-    mix.drug.drug_name?.toLowerCase().includes(search.toLowerCase()) ||
-    mix.prescribing_doctor?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = allMixes.filter(mix => {
+    const matchSearch = !search ||
+      mix.patient_name?.toLowerCase().includes(search.toLowerCase()) ||
+      mix.drug.drug_name?.toLowerCase().includes(search.toLowerCase()) ||
+      mix.prescribing_doctor?.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = filterStatus === "todos" || mix.validation_status === filterStatus ||
+      (filterStatus === "Pendiente" && !mix.validation_status);
+    return matchSearch && matchStatus;
+  });
 
   const handleSelectMix = (mix) => {
     setSelectedMix(mix);
@@ -131,6 +135,24 @@ export default function ValidacionMezclas() {
               onChange={e => setSearch(e.target.value)}
               className="pl-10 text-xs"
             />
+          </div>
+          <div className="flex gap-1 flex-wrap">
+            {["todos", "Pendiente", "Validada", "Rechazada"].map(s => (
+              <button
+                key={s}
+                onClick={() => setFilterStatus(s)}
+                className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                  filterStatus === s
+                    ? s === "Validada" ? "bg-emerald-600 text-white border-emerald-600"
+                      : s === "Rechazada" ? "bg-red-600 text-white border-red-600"
+                      : s === "Pendiente" ? "bg-amber-500 text-white border-amber-500"
+                      : "bg-primary text-white border-primary"
+                    : "bg-background text-muted-foreground border-border hover:bg-muted"
+                }`}
+              >
+                {s === "todos" ? "Todos" : s}
+              </button>
+            ))}
           </div>
 
           <div className="bg-card rounded-xl border border-border divide-y max-h-[70vh] overflow-y-auto">
