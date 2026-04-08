@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
+import { CHEMO_PROTOCOLS } from "@/lib/chemoProtocols";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,6 +8,55 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Search, Plus, FlaskConical, AlertTriangle, Package, CheckCircle, XCircle, Clock } from "lucide-react";
 import moment from "moment";
+
+// Extraer lista única de medicamentos de los protocolos
+const PROTOCOL_DRUGS = [...new Set(
+  Object.values(CHEMO_PROTOCOLS).flatMap(p => p.drugs.map(d => d.drug_name))
+)].sort();
+
+function DrugNameInput({ value, onChange }) {
+  const [query, setQuery] = useState(value || "");
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => { setQuery(value || ""); }, [value]);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filtered = PROTOCOL_DRUGS.filter(d =>
+    d.toLowerCase().includes(query.toLowerCase())
+  );
+
+  return (
+    <div className="relative" ref={ref}>
+      <Input
+        value={query}
+        onChange={e => { setQuery(e.target.value.toUpperCase()); onChange(e.target.value.toUpperCase()); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        placeholder="Buscar o escribir medicamento..."
+      />
+      {open && filtered.length > 0 && (
+        <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+          {filtered.map(drug => (
+            <button
+              key={drug}
+              type="button"
+              className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors"
+              onMouseDown={e => e.preventDefault()}
+              onClick={() => { onChange(drug); setQuery(drug); setOpen(false); }}
+            >
+              {drug}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const STATUS_COLORS = {
   Disponible: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -191,7 +241,7 @@ export default function Medications() {
           <div className="grid grid-cols-2 gap-3 mt-4">
             <div className="col-span-2">
               <Label>Nombre del medicamento *</Label>
-              <Input value={form.drug_name} onChange={e => set("drug_name", e.target.value.toUpperCase())} placeholder="Ej. OXALIPLATINO" />
+              <DrugNameInput value={form.drug_name} onChange={v => set("drug_name", v)} />
             </div>
             <div>
               <Label>Concentración *</Label>
