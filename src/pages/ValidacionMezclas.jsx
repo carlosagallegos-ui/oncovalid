@@ -145,7 +145,20 @@ export default function ValidacionMezclas() {
                     selectedMix?.id === mix.id ? "bg-primary/5 border-l-2 border-l-primary" : "hover:bg-muted/50"
                   }`}
                 >
-                  <p className="text-sm font-medium">{mix.patient_name}</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium">{mix.patient_name}</p>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${
+                      mix.validation_status === "Validada" ? "bg-emerald-100 text-emerald-700" :
+                      mix.validation_status === "Rechazada" ? "bg-red-100 text-red-700" :
+                      mix.validation_status === "Ajustada" ? "bg-blue-100 text-blue-700" :
+                      "bg-amber-100 text-amber-700"
+                    }`}>
+                      {mix.validation_status === "Validada" ? "✓ Validada" :
+                       mix.validation_status === "Rechazada" ? "✗ Rechazada" :
+                       mix.validation_status === "Ajustada" ? "~ Ajustada" :
+                       "⏳ Pendiente"}
+                    </span>
+                  </div>
                   <p className="text-xs text-muted-foreground">{mix.drug.drug_name}</p>
                   <p className="text-xs text-muted-foreground">
                     {mix.cycle_number ? `C${mix.cycle_number} D${mix.day_of_cycle}` : "—"}
