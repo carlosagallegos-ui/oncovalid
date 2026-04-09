@@ -9,9 +9,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Search, Plus, FlaskConical, AlertTriangle, Package, CheckCircle, XCircle, Clock, Trash2 } from "lucide-react";
 import moment from "moment";
 
-// Extraer lista única de medicamentos de los protocolos
+// Extraer lista única de medicamentos de los protocolos (normalizar bolo/infusión)
 const PROTOCOL_DRUGS = [...new Set(
-  Object.values(CHEMO_PROTOCOLS).flatMap(p => p.drugs.map(d => d.drug_name))
+  Object.values(CHEMO_PROTOCOLS).flatMap(p => p.drugs.map(d =>
+    d.drug_name.replace(/ bolo$/i, "").replace(/ infusi[oó]n$/i, "").trim()
+  ))
 )].sort();
 
 function DrugNameInput({ value, onChange }) {
