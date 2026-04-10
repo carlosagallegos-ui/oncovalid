@@ -30,12 +30,13 @@ function calcPrep(drug, medications) {
     invInfo = inv;
   }
 
+  const isBolo = volumeContainer === 0 || (drug.diluent || "").toLowerCase().includes("directo") || (drug.infusion_time || "").toLowerCase().includes("bolo");
   const drugVolumeMl = concMgPerMl ? Math.round((prescribedDose / concMgPerMl) * 100) / 100 : null;
-  const withdrawFromContainer = drugVolumeMl !== null && volumeContainer > 0 ? drugVolumeMl : null;
+  const withdrawFromContainer = drugVolumeMl !== null && !isBolo ? drugVolumeMl : null;
   const solutionRemaining = withdrawFromContainer !== null ? Math.round((volumeContainer - withdrawFromContainer) * 100) / 100 : null;
-  const finalVolume = volumeContainer || null;
+  const finalVolume = isBolo ? drugVolumeMl : (volumeContainer || null);
 
-  return { prescribedDose, volumeContainer, concMgPerMl, vialVolumeMl, drugVolumeMl, withdrawFromContainer, solutionRemaining, finalVolume, invInfo };
+  return { prescribedDose, volumeContainer, concMgPerMl, vialVolumeMl, drugVolumeMl, withdrawFromContainer, solutionRemaining, finalVolume, invInfo, isBolo };
 }
 
 export default function PreparationSheet({ drugs }) {
@@ -49,7 +50,7 @@ export default function PreparationSheet({ drugs }) {
     <div className="space-y-4">
       {drugs?.map((drug, i) => {
         const p = calcPrep(drug, medications);
-        const hasFullCalc = p.drugVolumeMl !== null && p.volumeContainer > 0;
+        const hasFullCalc = p.drugVolumeMl !== null && (p.volumeContainer > 0 || p.isBolo);
 
         return (
           <div key={i} className="bg-card rounded-xl border border-border overflow-hidden">
@@ -99,22 +100,26 @@ export default function PreparationSheet({ drugs }) {
                 <div className="space-y-3">
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pasos de preparación</p>
                   <ol className="space-y-3">
+                    {!p.isBolo && (
                     <li className="flex items-start gap-3">
                       <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
                       <p className="text-sm">
                         Retirar <span className="font-mono font-bold text-primary">{p.drugVolumeMl} mL</span> del recipiente de solución <span className="font-medium">({drug.solution_type || drug.diluent || "solución"})</span> para hacer espacio al medicamento.
                       </p>
                     </li>
+                    )}
                     <li className="flex items-start gap-3">
-                      <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                      <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">{p.isBolo ? "1" : "2"}</span>
                       <p className="text-sm">
                         Agregar <span className="font-mono font-bold text-primary">{p.drugVolumeMl} mL</span> de <span className="font-medium">{drug.drug_name}</span> al recipiente ({p.prescribedDose} {drug.dose_unit || "mg"} a {p.concMgPerMl} mg/mL).
                       </p>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
+                      <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">{p.isBolo ? "2" : "3"}</span>
                       <p className="text-sm">
-                        Mezclar suavemente e inspeccionar visualmente. Etiquetar el recipiente con los datos del paciente y medicamento.
+                        {p.isBolo
+                          ? "Administrar directamente en bolo IV lento. Verificar permeabilidad de la vía antes de administrar."
+                          : "Mezclar suavemente e inspeccionar visualmente. Etiquetar el recipiente con los datos del paciente y medicamento."}
                       </p>
                     </li>
                   </ol>
@@ -122,6 +127,20 @@ export default function PreparationSheet({ drugs }) {
                   {/* Final content legend */}
                   <div className="mt-4 rounded-xl border-2 border-primary/20 bg-primary/5 p-4">
                     <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-3">Contenido final del recipiente</p>
+                    {p.isBolo ? (
+                      <div className="grid grid-cols-2 gap-3 text-center">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Volumen a extraer</p>
+                          <p className="font-mono font-bold text-primary">{p.drugVolumeMl} mL</p>
+                          <p className="text-xs text-muted-foreground">({p.prescribedDose} {drug.dose_unit || "mg"})</p>
+                        </div>
+                        <div className="border-l border-primary/20 pl-3">
+                          <p className="text-xs text-muted-foreground">Administración</p>
+                          <p className="font-mono font-bold text-primary">Bolo IV</p>
+                          <p className="text-xs text-muted-foreground">Directo</p>
+                        </div>
+                      </div>
+                    ) : (
                     <div className="grid grid-cols-3 gap-3 text-center">
                       <div>
                         <p className="text-xs text-muted-foreground">Medicamento</p>
@@ -138,6 +157,7 @@ export default function PreparationSheet({ drugs }) {
                         <p className="font-mono font-bold text-lg text-primary">{p.finalVolume} mL</p>
                       </div>
                     </div>
+                    )}
                   </div>
                 </div>
               ) : (
