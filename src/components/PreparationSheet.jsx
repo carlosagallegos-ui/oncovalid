@@ -3,9 +3,11 @@ import { base44 } from "@/api/base44Client";
 import { FlaskConical, AlertTriangle, CheckCircle } from "lucide-react";
 
 function calcPrep(drug, medications) {
-  // Match drug name to inventory (case-insensitive)
+  // Normalize: strip " bolo" / " infusión" suffixes for inventory lookup
+  const normalize = name => (name || "").replace(/ bolo$/i, "").replace(/ infusi[oó]n$/i, "").trim().toLowerCase();
+  const drugNorm = normalize(drug.drug_name);
   const inv = medications.find(m =>
-    m.drug_name?.toLowerCase() === drug.drug_name?.toLowerCase() && m.status !== "Caducado"
+    normalize(m.drug_name) === drugNorm && m.status !== "Caducado"
   );
 
   const prescribedDose = drug.prescribed_dose || drug.calculated_dose || 0;
