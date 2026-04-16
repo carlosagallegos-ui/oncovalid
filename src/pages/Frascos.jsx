@@ -116,6 +116,7 @@ export default function Frascos() {
                               </div>
                             </td>
                             <td className="px-5 py-3 text-sm text-muted-foreground">{drug.route}</td>
+                            <td className="px-5 py-3 text-sm font-mono">{drug.total_prescribed?.toFixed(2)} {drug.unit}</td>
                             <td className="px-5 py-3 text-sm">{drug.solution_type || drug.diluent || "—"}</td>
                             <td className="px-5 py-3 text-sm">{drug.container_material || "—"}</td>
                             <td className="px-5 py-3 text-sm font-mono">
