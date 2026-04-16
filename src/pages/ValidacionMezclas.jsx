@@ -145,7 +145,7 @@ export default function ValidacionMezclas() {
             />
           </div>
           <div className="flex gap-1 flex-wrap">
-            {["todos", "Pendiente", "Validada", "Rechazada"].map(s => (
+            {["todos", "Pendiente", "En revisión", "Validada", "Rechazada"].map(s => (
               <button
                 key={s}
                 onClick={() => setFilterStatus(s)}
@@ -183,11 +183,13 @@ export default function ValidacionMezclas() {
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${
                           ds === "Validada" ? "bg-emerald-100 text-emerald-700" :
                           ds === "Rechazada" ? "bg-red-100 text-red-700" :
-                          ds === "Ajustada" ? "bg-blue-100 text-blue-700" :
+                          ds === "En revisión" ? "bg-blue-100 text-blue-700" :
+                          ds === "Ajustada" ? "bg-purple-100 text-purple-700" :
                           "bg-amber-100 text-amber-700"
                         }`}>
                           {ds === "Validada" ? "✓ Validada" :
                            ds === "Rechazada" ? "✗ Rechazada" :
+                           ds === "En revisión" ? "🔍 En revisión" :
                            ds === "Ajustada" ? "~ Ajustada" :
                            "⏳ Pendiente"}
                         </span>
@@ -274,6 +276,7 @@ export default function ValidacionMezclas() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="En revisión">🔍 En revisión</SelectItem>
                         <SelectItem value="Validada">✅ Validada</SelectItem>
                         <SelectItem value="Rechazada">❌ Rechazada</SelectItem>
                       </SelectContent>
