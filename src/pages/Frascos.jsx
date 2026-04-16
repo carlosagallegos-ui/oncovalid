@@ -5,8 +5,44 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, FlaskConical, ArrowRight } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
+import { CHEMO_PROTOCOLS } from "@/lib/chemoProtocols";
 
-function calcVials(drugs) {
+// Build a lookup map: normalized drug name -> protocol drug info (vial_size, vial_unit)
+const PROTOCOL_VIAL_MAP = (() => {
+  const map = {};
+  Object.values(CHEMO_PROTOCOLS).forEach(proto => {
+    proto.drugs.forEach(d => {
+      const key = d.drug_name.toLowerCase();
+      if (!map[key]) map[key] = d;
+    });
+  });
+  return map;
+})();
+
+function getVialInfo(drugName, medications) {
+  // 1. Try inventory (medication entity) - match by name (case-insensitive, partial)
+  const nameLower = drugName.toLowerCase();
+  const invMatch = medications.find(m =>
+    m.drug_name?.toLowerCase() === nameLower ||
+    nameLower.includes(m.drug_name?.toLowerCase()) ||
+    m.drug_name?.toLowerCase().includes(nameLower)
+  );
+  if (invMatch && invMatch.concentration && invMatch.vial_volume_ml) {
+    // concentration is mg per vial (concentration * vial_volume_ml) or just concentration if unit is mg
+    const vialSize = invMatch.concentration_unit === "mg/mL"
+      ? invMatch.concentration * invMatch.vial_volume_ml
+      : invMatch.concentration;
+    return { vial_size: vialSize, vial_unit: invMatch.concentration_unit === "mg/mL" ? "mg" : invMatch.concentration_unit, source: "inventario" };
+  }
+  // 2. Fallback to protocol map
+  const protoMatch = PROTOCOL_VIAL_MAP[nameLower];
+  if (protoMatch?.vial_size) {
+    return { vial_size: protoMatch.vial_size, vial_unit: protoMatch.vial_unit || "mg", source: "protocolo" };
+  }
+  return { vial_size: null, vial_unit: null, source: null };
+}
+
+function calcVials(drugs, medications) {
   const grouped = {};
   drugs.forEach(d => {
     const key = d.drug_name;
@@ -14,22 +50,28 @@ function calcVials(drugs) {
     grouped[key].total_prescribed += d.prescribed_dose || 0;
   });
   return Object.values(grouped).map(drug => {
-    const vialSize = drug.vial_size || null;
-    const unit = drug.vial_unit || drug.dose_unit || "mg";
+    const unit = drug.dose_unit || "mg";
+    const vialInfo = getVialInfo(drug.drug_name, medications);
+    const vialSize = vialInfo.vial_size;
+    const vialUnit = vialInfo.vial_unit || unit;
     const frascos = vialSize ? Math.ceil(drug.total_prescribed / vialSize) : null;
-    return { ...drug, unit, frascos };
+    return { ...drug, unit, vial_size: vialSize, vial_unit: vialUnit, vial_source: vialInfo.source, frascos };
   });
 }
 
 export default function Frascos() {
   const [prescriptions, setPrescriptions] = useState([]);
+  const [medications, setMedications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-
   useEffect(() => {
-    base44.entities.Prescription.list("-created_date", 200).then(data => {
-      setPrescriptions(data);
+    Promise.all([
+      base44.entities.Prescription.list("-created_date", 200),
+      base44.entities.Medication.list("-received_date", 300),
+    ]).then(([rxData, medData]) => {
+      setPrescriptions(rxData);
+      setMedications(medData);
       setLoading(false);
     });
   }, []);
@@ -74,7 +116,7 @@ export default function Frascos() {
       ) : (
         <div className="space-y-4">
           {filtered.map(rx => {
-            const vials = calcVials(rx.drugs || []);
+            const vials = calcVials(rx.drugs || [], medications);
             return (
               <div key={rx.id} className="bg-card rounded-xl border border-border overflow-hidden">
                 {/* Header */}
@@ -120,9 +162,14 @@ export default function Frascos() {
                             <td className="px-5 py-3 text-sm">{drug.solution_type || drug.diluent || "—"}</td>
                             <td className="px-5 py-3 text-sm">{drug.container_material || "—"}</td>
                             <td className="px-5 py-3 text-sm font-mono">
-                              {drug.vial_size
-                                ? `${drug.vial_size} ${drug.unit}`
-                                : <span className="text-muted-foreground text-xs">No definido</span>}
+                              {drug.vial_size ? (
+                                <span>
+                                  {drug.vial_size} {drug.vial_unit}
+                                  {drug.vial_source && <span className="ml-1 text-xs text-muted-foreground">({drug.vial_source})</span>}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground text-xs">No definido</span>
+                              )}
                             </td>
                             <td className="px-5 py-3">
                               {drug.frascos !== null ? (
