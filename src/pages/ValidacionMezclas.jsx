@@ -21,6 +21,7 @@ export default function ValidacionMezclas() {
   const [userRole, setUserRole] = useState(null);
   const [currentRx, setCurrentRx] = useState(null);
   const [filterStatus, setFilterStatus] = useState("todos");
+  const [filterDate, setFilterDate] = useState("");
 
   useEffect(() => {
     loadPrescriptions();
@@ -60,7 +61,8 @@ export default function ValidacionMezclas() {
       mix.prescribing_doctor?.toLowerCase().includes(search.toLowerCase());
     const drugStatus = mix.drug.validation_status || (mix.drug.is_valid === true ? "Validada" : mix.drug.is_valid === false ? "Rechazada" : "Pendiente");
     const matchStatus = filterStatus === "todos" || drugStatus === filterStatus;
-    return matchSearch && matchStatus;
+    const matchDate = !filterDate || (mix.prescription_date || "").startsWith(filterDate);
+    return matchSearch && matchStatus && matchDate;
   });
 
   const handleSelectMix = (mix) => {
@@ -143,6 +145,17 @@ export default function ValidacionMezclas() {
               onChange={e => setSearch(e.target.value)}
               className="pl-10 text-xs"
             />
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              value={filterDate}
+              onChange={e => setFilterDate(e.target.value)}
+              className="text-xs h-8"
+            />
+            {filterDate && (
+              <button onClick={() => setFilterDate("")} className="text-xs text-muted-foreground hover:text-foreground">✕</button>
+            )}
           </div>
           <div className="flex gap-1 flex-wrap">
             {["todos", "Pendiente", "En revisión", "Validada", "Rechazada"].map(s => (
