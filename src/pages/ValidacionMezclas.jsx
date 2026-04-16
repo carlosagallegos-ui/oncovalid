@@ -58,15 +58,15 @@ export default function ValidacionMezclas() {
       mix.patient_name?.toLowerCase().includes(search.toLowerCase()) ||
       mix.drug.drug_name?.toLowerCase().includes(search.toLowerCase()) ||
       mix.prescribing_doctor?.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = filterStatus === "todos" || mix.validation_status === filterStatus ||
-      (filterStatus === "Pendiente" && !mix.validation_status);
+    const drugStatus = mix.drug.validation_status || "Pendiente";
+    const matchStatus = filterStatus === "todos" || drugStatus === filterStatus;
     return matchSearch && matchStatus;
   });
 
   const handleSelectMix = (mix) => {
     setSelectedMix(mix);
     setMixIndex(mix.mixIndex);
-    setStatus(mix.drug.is_valid ? "Validada" : "Pendiente");
+    setStatus(mix.drug.validation_status || (mix.drug.is_valid ? "Validada" : "Pendiente"));
     setRecommendation(mix.drug.validation_notes || "");
     const rx = prescriptions.find(p => p.id === mix.rxId);
     setCurrentRx(rx);
@@ -85,24 +85,32 @@ export default function ValidacionMezclas() {
           return {
             ...d,
             is_valid: status === "Validada",
-            validation_notes: recommendation
+            validation_notes: recommendation,
+            validation_status: status,
+            validated_by: user.full_name || user.email,
+            validation_date: new Date().toISOString(),
           };
         }
         return d;
       });
 
+      // Calcular estado global: si todas tienen estado => tomar el "peor"; si alguna sin estado => Pendiente
+      const allStatuses = updatedDrugs.map(d => d.validation_status || "Pendiente");
+      let globalStatus = "Validada";
+      if (allStatuses.some(s => s === "Pendiente")) globalStatus = "Pendiente";
+      else if (allStatuses.some(s => s === "Rechazada")) globalStatus = "Rechazada";
+
       // Agregar al historial de estados
-      const stateHistory = rx.state_history || [];
-      stateHistory.push({
-        status: status,
+      const stateHistory = [...(rx.state_history || []), {
+        status: `Mezcla ${mixIndex + 1} (${selectedMix.drug.drug_name}): ${status}`,
         changed_by: user.full_name || user.email,
         timestamp: new Date().toISOString(),
         reason: recommendation || undefined
-      });
+      }];
 
       await base44.entities.Prescription.update(selectedMix.rxId, {
         drugs: updatedDrugs,
-        validation_status: status,
+        validation_status: globalStatus,
         validated_by: user.full_name || user.email,
         validation_date: new Date().toISOString(),
         state_history: stateHistory
@@ -170,14 +178,14 @@ export default function ValidacionMezclas() {
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-medium">{mix.patient_name}</p>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${
-                      mix.validation_status === "Validada" ? "bg-emerald-100 text-emerald-700" :
-                      mix.validation_status === "Rechazada" ? "bg-red-100 text-red-700" :
-                      mix.validation_status === "Ajustada" ? "bg-blue-100 text-blue-700" :
+                      mix.drug.validation_status === "Validada" ? "bg-emerald-100 text-emerald-700" :
+                      mix.drug.validation_status === "Rechazada" ? "bg-red-100 text-red-700" :
+                      mix.drug.validation_status === "Ajustada" ? "bg-blue-100 text-blue-700" :
                       "bg-amber-100 text-amber-700"
                     }`}>
-                      {mix.validation_status === "Validada" ? "✓ Validada" :
-                       mix.validation_status === "Rechazada" ? "✗ Rechazada" :
-                       mix.validation_status === "Ajustada" ? "~ Ajustada" :
+                      {mix.drug.validation_status === "Validada" ? "✓ Validada" :
+                       mix.drug.validation_status === "Rechazada" ? "✗ Rechazada" :
+                       mix.drug.validation_status === "Ajustada" ? "~ Ajustada" :
                        "⏳ Pendiente"}
                     </span>
                   </div>
