@@ -148,8 +148,6 @@ export default function ValidacionMezclas() {
         state_history: stateHistory
       });
 
-      // Recargar en background para sincronizar con el servidor
-      loadPrescriptions();
       setRecommendation("");
     }
 
