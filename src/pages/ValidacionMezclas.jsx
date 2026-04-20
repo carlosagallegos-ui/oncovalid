@@ -41,7 +41,11 @@ export default function ValidacionMezclas() {
       id: `${rx.id}-${idx}`,
       rxId: rx.id,
       mixIndex: idx,
-      drug,
+      drug: {
+        ...drug,
+        // Si el drug no tiene validation_status propio, heredar el de la prescripción
+        validation_status: drug.validation_status || (rx.drugs.length === 1 ? rx.validation_status : undefined),
+      },
       patient_name: rx.patient_name,
       patient_nss: rx.patient_nss,
       prescribing_doctor: rx.prescribing_doctor,
