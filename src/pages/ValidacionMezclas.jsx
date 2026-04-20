@@ -60,7 +60,7 @@ export default function ValidacionMezclas() {
       mix.patient_name?.toLowerCase().includes(search.toLowerCase()) ||
       mix.drug.drug_name?.toLowerCase().includes(search.toLowerCase()) ||
       mix.prescribing_doctor?.toLowerCase().includes(search.toLowerCase());
-    const drugStatus = mix.drug.validation_status || (mix.drug.is_valid === true ? "Validada" : mix.drug.is_valid === false ? "Rechazada" : "Pendiente");
+    const drugStatus = mix.drug.validation_status || "Pendiente";
     const matchStatus = filterStatus === "todos" || drugStatus === filterStatus;
     const rxDate = mix.prescription_date || "";
     const matchDate = (!filterDateFrom || rxDate >= filterDateFrom) && (!filterDateTo || rxDate <= filterDateTo);
@@ -70,7 +70,7 @@ export default function ValidacionMezclas() {
   const handleSelectMix = (mix) => {
     setSelectedMix(mix);
     setMixIndex(mix.mixIndex);
-    setStatus(mix.drug.validation_status || (mix.drug.is_valid ? "Validada" : "Pendiente"));
+    setStatus(mix.drug.validation_status || "Pendiente");
     setRecommendation(mix.drug.validation_notes || "");
     const rx = prescriptions.find(p => p.id === mix.rxId);
     setCurrentRx(rx);
@@ -216,7 +216,7 @@ export default function ValidacionMezclas() {
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-medium">{mix.patient_name}</p>
                     {(() => {
-                      const ds = mix.drug.validation_status || (mix.drug.is_valid === true ? "Validada" : mix.drug.is_valid === false ? "Rechazada" : "Pendiente");
+                      const ds = mix.drug.validation_status || "Pendiente";
                       return (
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${
                           ds === "Validada" ? "bg-emerald-100 text-emerald-700" :
