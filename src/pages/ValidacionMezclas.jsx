@@ -98,7 +98,7 @@ export default function ValidacionMezclas() {
         return d;
       });
 
-      // Calcular estado global: si todas tienen estado => tomar el "peor"; si alguna sin estado => Pendiente
+      // Calcular estado global
       const allStatuses = updatedDrugs.map(d => d.validation_status || "Pendiente");
       let globalStatus = "Validada";
       if (allStatuses.some(s => s === "Pendiente")) globalStatus = "Pendiente";
@@ -112,6 +112,30 @@ export default function ValidacionMezclas() {
         reason: recommendation || undefined
       }];
 
+      const updatedRx = {
+        ...rx,
+        drugs: updatedDrugs,
+        validation_status: globalStatus,
+        validated_by: user.full_name || user.email,
+        validation_date: new Date().toISOString(),
+        state_history: stateHistory
+      };
+
+      // Actualizar estado local inmediatamente para reactividad instantánea
+      setPrescriptions(prev => prev.map(p => p.id === selectedMix.rxId ? updatedRx : p));
+
+      // Actualizar la mezcla seleccionada con el nuevo estado para que el badge se refleje
+      setSelectedMix(prev => ({
+        ...prev,
+        drug: {
+          ...prev.drug,
+          validation_status: status,
+          is_valid: status === "Validada",
+          validation_notes: recommendation,
+        }
+      }));
+      setCurrentRx(updatedRx);
+
       await base44.entities.Prescription.update(selectedMix.rxId, {
         drugs: updatedDrugs,
         validation_status: globalStatus,
@@ -120,8 +144,8 @@ export default function ValidacionMezclas() {
         state_history: stateHistory
       });
 
-      await loadPrescriptions();
-      setSelectedMix(null);
+      // Recargar en background para sincronizar con el servidor
+      loadPrescriptions();
       setRecommendation("");
     }
 
