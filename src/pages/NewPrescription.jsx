@@ -5,7 +5,7 @@ import PrescriptionRecipe from "@/components/PrescriptionRecipe";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, ArrowRight, Check, AlertTriangle, FlaskConical, Syringe } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, AlertTriangle, Syringe } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PatientSearchSelect from "@/components/PatientSearchSelect";
 import DoctorSearchSelect from "@/components/DoctorSearchSelect";
@@ -32,7 +32,6 @@ export default function NewPrescription() {
   const [drugDoses, setDrugDoses] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState("dosis");
   const [showRecipe, setShowRecipe] = useState(false);
   const [savedRx, setSavedRx] = useState(null);
 
@@ -152,22 +151,7 @@ export default function NewPrescription() {
 
   const hasOutOfRange = drugDoses.some(d => !d.is_valid);
 
-  const vialSummary = (() => {
-    const grouped = {};
-    drugDoses.forEach(d => {
-      const key = d.drug_name;
-      if (!grouped[key]) grouped[key] = { ...d, total_prescribed: 0 };
-      grouped[key].total_prescribed += d.prescribed_dose || 0;
-    });
-    return Object.values(grouped).map(drug => {
-      const vialSize = drug.vial_size || null;
-      const unit = drug.vial_unit || drug.dose_unit || "mg";
-      const frascos = vialSize ? Math.ceil(drug.total_prescribed / vialSize) : null;
-      const totalDisp = frascos !== null ? frascos * vialSize : null;
-      const sobrante = totalDisp !== null ? (totalDisp - drug.total_prescribed).toFixed(2) : null;
-      return { ...drug, unit, frascos, totalDisp, sobrante };
-    });
-  })();
+
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -307,28 +291,8 @@ export default function NewPrescription() {
             <div><span className="text-muted-foreground">Protocolo: </span><span className="font-medium">{detectedProtocol ? detectedProtocol.name : "Personalizado"}</span></div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex gap-1 bg-muted p-1 rounded-lg w-fit">
-            <button
-              onClick={() => setActiveTab("dosis")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === "dosis" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Syringe className="h-4 w-4" /> Validación de Dosis
-            </button>
-            <button
-              onClick={() => setActiveTab("frascos")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === "frascos" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <FlaskConical className="h-4 w-4" /> Frascos por Mezcla
-            </button>
-          </div>
-
-          {/* Tab: Dosis */}
-          {activeTab === "dosis" && (
+          {/* Validación de Dosis */}
+          {(
             <div className="bg-card rounded-xl border border-border overflow-hidden">
               <div className="px-6 py-4 border-b border-border">
                 <h2 className="font-semibold">Validación de Dosis</h2>
@@ -438,71 +402,9 @@ export default function NewPrescription() {
             </div>
           )}
 
-          {/* Tab: Frascos */}
-          {activeTab === "frascos" && (
-            <div className="bg-card rounded-xl border border-border overflow-hidden">
-              <div className="px-6 py-4 border-b border-border">
-                <h2 className="font-semibold">Frascos Necesarios por Mezcla</h2>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Cantidad de frascos requeridos según la dosis prescrita. Medicamentos repetidos se suman.
-                </p>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border bg-muted/30">
-                      {["Medicamento", "Vía", "Dosis Total Prescrita", "Tamaño Frasco", "Frascos Necesarios", "Disponible / Sobrante"].map(h => (
-                        <th key={h} className="text-left px-5 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {vialSummary.map((drug, i) => (
-                      <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                        <td className="px-5 py-4">
-                          <p className="text-sm font-semibold">{drug.drug_name}</p>
-                        </td>
-                        <td className="px-5 py-4 text-sm text-muted-foreground">{drug.route}</td>
-                        <td className="px-5 py-4 text-sm font-mono font-medium">
-                          {drug.total_prescribed.toFixed(2)} {drug.unit}
-                        </td>
-                        <td className="px-5 py-4 text-sm font-mono">
-                          {drug.vial_size
-                            ? `${drug.vial_size} ${drug.unit}/frasco`
-                            : <span className="text-muted-foreground text-xs">No definido</span>}
-                        </td>
-                        <td className="px-5 py-4">
-                          {drug.frascos !== null ? (
-                            <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-lg">
-                              {drug.frascos}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">—</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-4 text-sm">
-                          {drug.totalDisp !== null ? (
-                            <div>
-                              <span className="font-mono font-medium">{drug.totalDisp} {drug.unit}</span>
-                              {parseFloat(drug.sobrante) > 0 && (
-                                <p className="text-xs text-muted-foreground mt-0.5">
-                                  Sobrante: {drug.sobrante} {drug.unit}
-                                </p>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
 
-          {hasOutOfRange && activeTab === "dosis" && (
+
+          {hasOutOfRange && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
               <p className="text-sm text-amber-700 font-medium">
                 ⚠️ Algunas dosis están fuera del rango ±10%. Quedará como "Pendiente" para revisión del farmacéutico.
