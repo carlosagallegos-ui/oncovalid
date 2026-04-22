@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import PrescriptionRecipe from "@/components/PrescriptionRecipe";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, ArrowRight, Check, AlertTriangle, FlaskConical, Syringe } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, AlertTriangle, FlaskConical, Syringe, Minus, Plus, PackageMinus, PackagePlus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PatientSearchSelect from "@/components/PatientSearchSelect";
 import DoctorSearchSelect from "@/components/DoctorSearchSelect";
@@ -35,6 +35,15 @@ export default function NewPrescription() {
   const [activeTab, setActiveTab] = useState("dosis");
   const [showRecipe, setShowRecipe] = useState(false);
   const [savedRx, setSavedRx] = useState(null);
+  const [inventory, setInventory] = useState([]);
+  // frascosToDispense: { [drug_name]: number } — editable por el usuario
+  const [frascosToDispense, setFrascosToDispense] = useState({});
+  const [dispensing, setDispensing] = useState(false);
+  const [dispensed, setDispensed] = useState({}); // track which drugs were already dispensed
+
+  useEffect(() => {
+    base44.entities.Medication.list("-created_date", 500).then(setInventory);
+  }, []);
 
   const handleDrugsChange = (drugs) => {
     setSelectedDrugs(drugs);
@@ -95,6 +104,58 @@ export default function NewPrescription() {
     const updated = [...drugDoses];
     updated[index] = { ...updated[index], container_material: value };
     setDrugDoses(updated);
+  };
+
+  const getInventoryForDrug = (drugName) => {
+    const name = drugName.toLowerCase();
+    return inventory.filter(m =>
+      m.drug_name?.toLowerCase().includes(name) &&
+      m.status === "Disponible" &&
+      (m.quantity_available ?? 0) > 0
+    );
+  };
+
+  const getTotalAvailableVials = (drugName) => {
+    return getInventoryForDrug(drugName).reduce((s, m) => s + (m.quantity_available ?? 0), 0);
+  };
+
+  const handleDispenseVials = async (drugName, count) => {
+    if (count <= 0) return;
+    setDispensing(true);
+    let remaining = count;
+    const meds = [...getInventoryForDrug(drugName)].sort((a, b) => a.expiration_date > b.expiration_date ? 1 : -1);
+    for (const med of meds) {
+      if (remaining <= 0) break;
+      const take = Math.min(remaining, med.quantity_available ?? 0);
+      await base44.entities.Medication.update(med.id, {
+        quantity_available: (med.quantity_available ?? 0) - take
+      });
+      remaining -= take;
+    }
+    const fresh = await base44.entities.Medication.list("-created_date", 500);
+    setInventory(fresh);
+    setDispensed(prev => ({ ...prev, [drugName]: (prev[drugName] || 0) + count }));
+    setDispensing(false);
+  };
+
+  const handleReturnVials = async (drugName, count) => {
+    if (count <= 0) return;
+    setDispensing(true);
+    // Return to the first matching med record available
+    const meds = getInventoryForDrug(drugName);
+    // Might be returning to a zero-stock item too; find by name broadly
+    const allMeds = inventory.filter(m => m.drug_name?.toLowerCase().includes(drugName.toLowerCase()));
+    const target = allMeds[0];
+    if (target) {
+      await base44.entities.Medication.update(target.id, {
+        quantity_available: (target.quantity_available ?? 0) + count,
+        status: "Disponible"
+      });
+    }
+    const fresh = await base44.entities.Medication.list("-created_date", 500);
+    setInventory(fresh);
+    setDispensed(prev => ({ ...prev, [drugName]: Math.max(0, (prev[drugName] || 0) - count) }));
+    setDispensing(false);
   };
 
   const goToStep3 = () => {
@@ -444,60 +505,111 @@ export default function NewPrescription() {
               <div className="px-6 py-4 border-b border-border">
                 <h2 className="font-semibold">Frascos Necesarios por Mezcla</h2>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Cantidad de frascos requeridos según la dosis prescrita. Medicamentos repetidos se suman.
+                  Ajuste la cantidad a surtir y confirme el movimiento de inventario.
                 </p>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border bg-muted/30">
-                      {["Medicamento", "Vía", "Dosis Total Prescrita", "Tamaño Frasco", "Frascos Necesarios", "Disponible / Sobrante"].map(h => (
-                        <th key={h} className="text-left px-5 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {vialSummary.map((drug, i) => (
-                      <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                        <td className="px-5 py-4">
+              <div className="divide-y divide-border">
+                {vialSummary.map((drug, i) => {
+                  const availableInv = getTotalAvailableVials(drug.drug_name);
+                  const suggestedFrascos = drug.frascos ?? 0;
+                  const toDispense = frascosToDispense[drug.drug_name] ?? suggestedFrascos;
+                  const alreadyDispensed = dispensed[drug.drug_name] || 0;
+                  const hasStock = availableInv >= toDispense;
+
+                  return (
+                    <div key={i} className="p-5 space-y-4">
+                      {/* Header row */}
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
                           <p className="text-sm font-semibold">{drug.drug_name}</p>
-                        </td>
-                        <td className="px-5 py-4 text-sm text-muted-foreground">{drug.route}</td>
-                        <td className="px-5 py-4 text-sm font-mono font-medium">
-                          {drug.total_prescribed.toFixed(2)} {drug.unit}
-                        </td>
-                        <td className="px-5 py-4 text-sm font-mono">
-                          {drug.vial_size
-                            ? `${drug.vial_size} ${drug.unit}/frasco`
-                            : <span className="text-muted-foreground text-xs">No definido</span>}
-                        </td>
-                        <td className="px-5 py-4">
-                          {drug.frascos !== null ? (
-                            <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-lg">
-                              {drug.frascos}
+                          <p className="text-xs text-muted-foreground">{drug.route} · Dosis: {drug.total_prescribed.toFixed(2)} {drug.unit}</p>
+                          {drug.vial_size && (
+                            <p className="text-xs text-muted-foreground">Frasco: {drug.vial_size} {drug.unit}/frasco</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                            availableInv > 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                          }`}>
+                            Inventario: {availableInv} frascos
+                          </span>
+                          {alreadyDispensed > 0 && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
+                              Surtidos: {alreadyDispensed}
                             </span>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">—</span>
                           )}
-                        </td>
-                        <td className="px-5 py-4 text-sm">
-                          {drug.totalDisp !== null ? (
-                            <div>
-                              <span className="font-mono font-medium">{drug.totalDisp} {drug.unit}</span>
-                              {parseFloat(drug.sobrante) > 0 && (
-                                <p className="text-xs text-muted-foreground mt-0.5">
-                                  Sobrante: {drug.sobrante} {drug.unit}
-                                </p>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
+                        </div>
+                      </div>
+
+                      {/* Controls */}
+                      <div className="flex flex-wrap items-end gap-4">
+                        {/* Quantity editor */}
+                        <div className="space-y-1">
+                          <Label className="text-xs">Frascos a surtir</Label>
+                          <div className="flex items-center gap-1">
+                            <button
+                              className="w-8 h-8 rounded border border-border bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
+                              onClick={() => setFrascosToDispense(prev => ({ ...prev, [drug.drug_name]: Math.max(0, toDispense - 1) }))}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </button>
+                            <Input
+                              type="number"
+                              min={0}
+                              value={toDispense}
+                              onChange={e => setFrascosToDispense(prev => ({ ...prev, [drug.drug_name]: Math.max(0, parseInt(e.target.value) || 0) }))}
+                              className="w-16 text-center font-mono h-8 text-sm"
+                            />
+                            <button
+                              className="w-8 h-8 rounded border border-border bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
+                              onClick={() => setFrascosToDispense(prev => ({ ...prev, [drug.drug_name]: toDispense + 1 }))}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </button>
+                          </div>
+                          {!hasStock && toDispense > 0 && (
+                            <p className="text-xs text-red-600">⚠️ Stock insuficiente</p>
                           )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+
+                        {/* Surtir button */}
+                        <Button
+                          size="sm"
+                          className="gap-2 bg-primary hover:bg-primary/90"
+                          disabled={dispensing || toDispense <= 0 || !hasStock}
+                          onClick={() => handleDispenseVials(drug.drug_name, toDispense)}
+                        >
+                          <PackageMinus className="h-4 w-4" />
+                          Surtir {toDispense > 0 ? toDispense : ""} frasco{toDispense !== 1 ? "s" : ""}
+                        </Button>
+
+                        {/* Regresar button — only if something was dispensed */}
+                        {alreadyDispensed > 0 && (
+                          <div className="space-y-1">
+                            <Label className="text-xs">Regresar frascos llenos</Label>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                              disabled={dispensing}
+                              onClick={() => handleReturnVials(drug.drug_name, 1)}
+                            >
+                              <PackagePlus className="h-4 w-4" />
+                              Regresar 1
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Sobrante info */}
+                      {drug.sobrante && parseFloat(drug.sobrante) > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Sobrante estimado: <span className="font-mono font-medium">{drug.sobrante} {drug.unit}</span>
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
