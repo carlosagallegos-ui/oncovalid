@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import PatientSearchSelect from "@/components/PatientSearchSelect";
 import DoctorSearchSelect from "@/components/DoctorSearchSelect";
 import DrugSelector from "@/components/DrugSelector";
-import Cie10Search from "@/components/Cie10Search";
 import { calculateDose, validateDose, generateAlerts } from "@/lib/chemoProtocols";
 
 export default function NewPrescription() {
@@ -25,8 +24,6 @@ export default function NewPrescription() {
   const [cycleNumber, setCycleNumber] = useState(1);
   const [dayOfCycle, setDayOfCycle] = useState(1);
   const [prescriptionDate, setPrescriptionDate] = useState(new Date().toISOString().split("T")[0]);
-  const [cie10, setCie10] = useState(null);
-
   // Step 2
   const [selectedDrugs, setSelectedDrugs] = useState([]);
   const [detectedProtocol, setDetectedProtocol] = useState(null);
@@ -144,8 +141,8 @@ export default function NewPrescription() {
       patient_weight: patient.weight_kg,
       validation_status: "Pendiente",
       alerts,
-      cie10_code: cie10?.code || "",
-      diagnosis: cie10 ? `${cie10.code} - ${cie10.desc}` : ""
+      cie10_code: patient.cie10_code || "",
+      diagnosis: patient.diagnosis || ""
     };
     const created = await base44.entities.Prescription.create(data);
     setSavedRx(created);
@@ -258,16 +255,6 @@ export default function NewPrescription() {
               onDrugsChange={handleDrugsChange}
               onProtocolDetected={handleProtocolDetected}
             />
-          </div>
-
-          <div className="bg-card rounded-xl border border-border p-6 space-y-4">
-            <h2 className="font-semibold">Diagnóstico CIE-10</h2>
-            <Cie10Search value={cie10} onChange={setCie10} />
-            {cie10 && (
-              <p className="text-xs text-muted-foreground">
-                Código seleccionado: <span className="font-mono font-semibold text-primary">{cie10.code}</span> — {cie10.desc}
-              </p>
-            )}
           </div>
 
           {selectedDrugs.length > 0 && (

@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { calculateBSA } from "@/lib/chemoProtocols";
+import Cie10Search from "@/components/Cie10Search";
 
 export default function PatientSearchSelect({ onSelect, selectedPatient }) {
   const [patients, setPatients] = useState([]);
@@ -18,6 +19,7 @@ export default function PatientSearchSelect({ onSelect, selectedPatient }) {
     diagnosis: "", cie10_code: "", allergies: "",
     creatinine_clearance: "", hepatic_function: "Normal", status: "Activo"
   });
+  const [cie10, setCie10] = useState(null);
 
   useEffect(() => {
     base44.entities.Patient.list("-created_date", 100).then(setPatients);
@@ -37,7 +39,9 @@ export default function PatientSearchSelect({ onSelect, selectedPatient }) {
       weight_kg: weight,
       height_cm: height,
       bsa: Math.round(bsa * 100) / 100,
-      creatinine_clearance: newPatient.creatinine_clearance ? parseFloat(newPatient.creatinine_clearance) : undefined
+      creatinine_clearance: newPatient.creatinine_clearance ? parseFloat(newPatient.creatinine_clearance) : undefined,
+      diagnosis: cie10 ? `${cie10.code} - ${cie10.desc}` : newPatient.diagnosis,
+      cie10_code: cie10?.code || newPatient.cie10_code
     };
     const created = await base44.entities.Patient.create(data);
     setPatients(prev => [created, ...prev]);
@@ -148,12 +152,8 @@ export default function PatientSearchSelect({ onSelect, selectedPatient }) {
                   </div>
                 )}
                 <div className="col-span-2">
-                  <Label>Diagnóstico *</Label>
-                  <Input value={newPatient.diagnosis} onChange={e => setNewPatient(p => ({ ...p, diagnosis: e.target.value.toUpperCase() }))} />
-                </div>
-                <div>
-                  <Label>Código CIE-10</Label>
-                  <Input value={newPatient.cie10_code} onChange={e => setNewPatient(p => ({ ...p, cie10_code: e.target.value.toUpperCase() }))} />
+                  <Label>Diagnóstico CIE-10 *</Label>
+                  <Cie10Search value={cie10} onChange={setCie10} />
                 </div>
                 <div>
                   <Label>Alergias</Label>
@@ -178,7 +178,7 @@ export default function PatientSearchSelect({ onSelect, selectedPatient }) {
               </div>
               <div className="flex justify-end gap-2 mt-4">
                 <Button variant="outline" onClick={() => setShowNew(false)}>Cancelar</Button>
-                <Button onClick={handleCreate} disabled={!newPatient.full_name || !newPatient.weight_kg || !newPatient.height_cm || !newPatient.diagnosis}>
+                <Button onClick={handleCreate} disabled={!newPatient.full_name || !newPatient.weight_kg || !newPatient.height_cm || !cie10}>
                   Registrar
                 </Button>
               </div>
