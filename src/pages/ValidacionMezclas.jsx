@@ -74,7 +74,9 @@ export default function ValidacionMezclas() {
   const handleSelectMix = (mix) => {
     setSelectedMix(mix);
     setMixIndex(mix.mixIndex);
-    setStatus(mix.drug.validation_status || "Pendiente");
+    const ds = mix.drug.validation_status;
+    // Si no tiene estado o es "Pendiente", inicializar el selector en "En revisión"
+    setStatus(ds && ds !== "Pendiente" ? ds : "En revisión");
     setRecommendation(mix.drug.validation_notes || "");
     const rx = prescriptions.find(p => p.id === mix.rxId);
     setCurrentRx(rx);
@@ -102,11 +104,12 @@ export default function ValidacionMezclas() {
         return d;
       });
 
-      // Calcular estado global
+      // Calcular estado global de la prescripción
       const allStatuses = updatedDrugs.map(d => d.validation_status || "Pendiente");
-      let globalStatus = "Validada";
-      if (allStatuses.some(s => s === "Pendiente")) globalStatus = "Pendiente";
+      let globalStatus;
+      if (allStatuses.every(s => s === "Validada")) globalStatus = "Validada";
       else if (allStatuses.some(s => s === "Rechazada")) globalStatus = "Rechazada";
+      else globalStatus = "Pendiente";
 
       // Agregar al historial de estados
       const stateHistory = [...(rx.state_history || []), {
