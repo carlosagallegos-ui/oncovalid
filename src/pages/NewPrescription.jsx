@@ -218,16 +218,6 @@ export default function NewPrescription() {
           </div>
 
           <div className="bg-card rounded-xl border border-border p-6 space-y-4">
-            <h2 className="font-semibold">Diagnóstico CIE-10</h2>
-            <Cie10Search value={cie10} onChange={setCie10} />
-            {cie10 && (
-              <p className="text-xs text-muted-foreground">
-                Código seleccionado: <span className="font-mono font-semibold text-primary">{cie10.code}</span> — {cie10.desc}
-              </p>
-            )}
-          </div>
-
-          <div className="bg-card rounded-xl border border-border p-6 space-y-4">
             <h2 className="font-semibold">Datos del Ciclo</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
@@ -268,6 +258,16 @@ export default function NewPrescription() {
               onDrugsChange={handleDrugsChange}
               onProtocolDetected={handleProtocolDetected}
             />
+          </div>
+
+          <div className="bg-card rounded-xl border border-border p-6 space-y-4">
+            <h2 className="font-semibold">Diagnóstico CIE-10</h2>
+            <Cie10Search value={cie10} onChange={setCie10} />
+            {cie10 && (
+              <p className="text-xs text-muted-foreground">
+                Código seleccionado: <span className="font-mono font-semibold text-primary">{cie10.code}</span> — {cie10.desc}
+              </p>
+            )}
           </div>
 
           {selectedDrugs.length > 0 && (
